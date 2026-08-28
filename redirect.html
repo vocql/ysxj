@@ -1,176 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="3;url=https://example.com">
-  <title>ysxj — Redirecting...</title>
-  <link rel="icon" type="image/png" href="ysxjlogo.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --ink:#0a0a0a;
-      --ink-2:#151515;
-      --paper:#f2f0e9;
-      --paper-dim:#c9c7bd;
-      --pink:#ff2f92;
-    }
-
-    * { box-sizing:border-box; }
-
-    html, body {
-      margin:0;
-      width:100%;
-      height:100%;
-    }
-
-    body {
-      background:
-        linear-gradient(180deg, rgba(10,10,10,.35), rgba(10,10,10,.82)),
-        url('./assets/texture-bg.png');
-      background-size:cover;
-      background-position:center;
-      color:var(--paper);
-      font-family:'Barlow Condensed', sans-serif;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      overflow:hidden;
-    }
-
-    body::before {
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background:
-        radial-gradient(circle at 15% 20%, rgba(255,47,146,.08), transparent 25%),
-        radial-gradient(circle at 85% 80%, rgba(255,47,146,.06), transparent 28%);
-    }
-
-    .redirect-card {
-      position:relative;
-      width:min(620px, calc(100% - 40px));
-      padding:58px 35px 52px;
-      background:rgba(21,21,21,.94);
-      border:2px solid #292929;
-      box-shadow:12px 12px 0 #ff2f92;
-    }
-
-    .tag {
-      font-family:'Permanent Marker', cursive;
-      color:var(--pink);
-      font-size:20px;
-      transform:rotate(-2deg);
-      display:inline-block;
-      margin-bottom:14px;
-    }
-
-    .logo {
-      width:90px;
-      height:90px;
-      object-fit:contain;
-      border-radius:50%;
-      margin-bottom:20px;
-      filter:drop-shadow(0 12px 20px rgba(0,0,0,.6));
-    }
-
-    h1 {
-      margin:0;
-      font-family:'Anton', sans-serif;
-      font-size:clamp(55px, 10vw, 92px);
-      line-height:.9;
-      letter-spacing:1px;
-      text-transform:uppercase;
-      text-shadow:
-        4px 0 0 var(--pink),
-        -2px 0 0 var(--ink);
-    }
-
-    .subtitle {
-      margin:22px auto 0;
-      color:var(--paper-dim);
-      font-size:21px;
-      letter-spacing:.3px;
-    }
-
-    .loader {
-      width:100%;
-      max-width:390px;
-      height:7px;
-      margin:32px auto 18px;
-      background:#303030;
-      overflow:hidden;
-      border:1px solid #444;
-    }
-
-    .loader span {
-      display:block;
-      height:100%;
-      width:0;
-      background:var(--pink);
-      animation:load 3s linear forwards;
-    }
-
-    .small {
-      color:#777;
-      font-size:14px;
-      text-transform:uppercase;
-      letter-spacing:1px;
-    }
-
-    .corner {
-      position:absolute;
-      font-family:'Anton', sans-serif;
-      color:#333;
-      font-size:48px;
-      line-height:1;
-    }
-
-    .corner.top-left { top:12px; left:16px; }
-    .corner.bottom-right { bottom:8px; right:16px; }
-
-    @keyframes load {
-      from { width:0; }
-      to { width:100%; }
-    }
-
-    @media (max-width:600px) {
-      .redirect-card {
-        padding:45px 24px 42px;
-        box-shadow:7px 7px 0 var(--pink);
-      }
-
-      .logo {
-        width:72px;
-        height:72px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="3;url=https://example.com">
+<title>ysxj — Redirecting...</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0}
+body{
+  background:#0a0a0a;
+  color:#f2f0e9;
+  font-family:'Barlow Condensed',sans-serif;
+  overflow:hidden;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(255,47,146,.13),transparent 28%),
+    radial-gradient(circle at 85% 80%,rgba(255,47,146,.08),transparent 30%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 1px,transparent 1px 8px);
+  pointer-events:none;
+}
+.page{
+  width:100vw;
+  height:100vh;
+  min-width:320px;
+  min-height:180px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.background-text{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Anton',sans-serif;
+  font-size:min(32vw,620px);
+  color:#111;
+  letter-spacing:-15px;
+  user-select:none;
+  pointer-events:none;
+}
+.card{
+  position:relative;
+  z-index:2;
+  width:min(900px,80vw);
+  min-height:520px;
+  padding:70px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  background:rgba(15,15,15,.96);
+  border:2px solid #292929;
+  box-shadow:22px 22px 0 #ff2f92;
+}
+.tag{
+  font-family:'Permanent Marker',cursive;
+  color:#ff2f92;
+  font-size:32px;
+  transform:rotate(-3deg);
+  margin-bottom:20px;
+}
+.logo{
+  width:115px;
+  height:115px;
+  object-fit:contain;
+  border-radius:50%;
+  margin-bottom:25px;
+}
+h1{
+  margin:0;
+  font-family:'Anton',sans-serif;
+  font-size:clamp(80px,8vw,145px);
+  line-height:.86;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  text-shadow:6px 0 #ff2f92,-3px 0 #050505;
+}
+.subtitle{
+  margin:30px 0 0;
+  color:#bdbbb3;
+  font-size:27px;
+}
+.loader{
+  width:min(600px,75%);
+  height:10px;
+  margin-top:40px;
+  background:#292929;
+  border:1px solid #444;
+}
+.loader span{
+  display:block;
+  width:0;
+  height:100%;
+  background:#ff2f92;
+  animation:load 3s linear forwards;
+}
+.small{
+  margin-top:16px;
+  color:#666;
+  font-size:17px;
+  text-transform:uppercase;
+  letter-spacing:3px;
+}
+.mark{
+  position:absolute;
+  color:#333;
+  font-family:'Anton',sans-serif;
+  font-size:55px;
+}
+.tl{top:25px;left:30px}
+.br{right:30px;bottom:20px}
+@keyframes load{to{width:100%}}
+@media(max-width:800px){
+ .card{width:86vw;min-height:60vh;padding:40px;box-shadow:12px 12px 0 #ff2f92}
+ .logo{width:80px;height:80px}
+ .tag{font-size:22px}
+ .subtitle{font-size:20px}
+ .loader{width:90%}
+}
+</style>
 </head>
-
 <body>
-  <main class="redirect-card">
-    <div class="corner top-left">01</div>
-    <div class="corner bottom-right">YSXJ</div>
-
-    <img class="logo" src="ysxjlogo.png" alt="ysxj logo">
-
+<div class="page">
+  <div class="background-text">YSXJ</div>
+  <main class="card">
+    <div class="mark tl">01</div>
+    <div class="mark br">YSXJ</div>
+    <img class="logo" src="ysxjlogo.png" alt="ysxj">
     <div class="tag">// ysxj</div>
     <h1>Redirecting...</h1>
-    <p class="subtitle">Taking you to the next page.</p>
-
+    <p class="subtitle">You're being redirected to the next page.</p>
     <div class="loader"><span></span></div>
-    <div class="small">Please wait...</div>
+    <div class="small">Please wait</div>
   </main>
-
-  <script>
-    setTimeout(function () {
-      window.location.replace("https://discord.gg/3hkfHPwc2t");
-    }, 3000);
-  </script>
+</div>
+<script>
+setTimeout(() => window.location.replace("https://discord.gg/3hkfHPwc2t"), 3000);
+</script>
 </body>
 </html>
