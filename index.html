@@ -422,10 +422,36 @@
     background-position: 0 -13px;
     background-repeat: repeat-x;
   }
+  /* ---------- private access banner + card ---------- */
+  .private-banner{
+    background:repeating-linear-gradient(135deg, var(--pink), var(--pink) 14px, var(--ink) 14px, var(--ink) 28px);
+    color:#ffffff;
+    text-shadow:0 1px 3px rgba(0,0,0,0.6);
+    text-align:center;
+    padding:12px 20px;
+    font-family:'Anton', sans-serif;
+    font-size:14px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+  }
+  .private-banner span{
+    background:var(--ink);
+    color:#ffffff;
+    padding:4px 12px;
+    display:inline-block;
+  }
+  .private-banner a{
+    color:#ffffff;
+    text-decoration:underline;
+  }
 </style>
 </head>
 <body>
 
+<div class="private-banner">
+  🔒 <span>Private bot</span> — DM VOQCL on Discord or <a href="https://discord.gg/3hkfHPwc2t" target="_blank" rel="noopener">join the server</a> to request access
+</div>
+  
 <header class="nav">
   <div class="nav-inner">
     <div class="brand">
