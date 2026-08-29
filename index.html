@@ -209,24 +209,42 @@
   /* ---------- hero embed mockup ---------- */
   .hero-art{ display:flex; justify-content:center; align-items:center; position:relative; }
   .discord-mock{
-    width:min(380px,100%); background:#1a1b1f; border:1px solid #2b2c31; border-radius:8px;
-    padding:0; transform:rotate(2deg); box-shadow:12px 14px 0 0 rgba(0,0,0,0.5), 0 0 0 2px var(--ink);
+    width:min(400px,100%); background:#151619; border:1px solid #2b2c31; border-radius:8px;
+    padding:16px 16px 14px; transform:rotate(2deg); box-shadow:12px 14px 0 0 rgba(0,0,0,0.5), 0 0 0 2px var(--ink);
     font-family:'Barlow Condensed', sans-serif;
   }
-  .discord-mock .dm-titlebar{
-    display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid #2b2c31; background:#151619;
-    border-radius:8px 8px 0 0;
+  .discord-mock .dm-row{ display:flex; gap:12px; align-items:flex-start; }
+  .discord-mock .dm-avatar{ width:40px; height:40px; border-radius:50%; flex:none; border:2px solid var(--pink); background:#0b0c0a; object-fit:cover; }
+  .discord-mock .dm-col{ min-width:0; flex:1; }
+  .discord-mock .dm-meta{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .discord-mock .dm-username{ font-weight:700; color:#fff; font-size:15px; font-family:'Barlow Condensed'; }
+  .discord-mock .dm-appbadge{
+    background:#5865f2; color:#fff; font-size:10px; font-weight:800; padding:1px 5px 2px;
+    border-radius:3px; text-transform:uppercase; letter-spacing:0.3px; line-height:1.4;
   }
-  .discord-mock .dm-dot{ width:10px; height:10px; border-radius:50%; }
-  .discord-mock .dm-body{ padding:18px 18px 20px; }
-  .discord-mock .dm-embed{ border-left:4px solid var(--pink); background:#202226; border-radius:4px; padding:14px 16px; }
-  .discord-mock .dm-embed-title{ font-family:'Anton',sans-serif; font-size:16px; color:#fff; letter-spacing:0.3px; }
-  .discord-mock .dm-embed-sub{ color:#9aa0a6; font-size:14px; margin-top:2px; font-family:'Barlow Condensed'; }
+  .discord-mock .dm-time{ color:#767c85; font-size:12px; }
+  .discord-mock .dm-embed{
+    margin-top:6px; border-left:4px solid var(--pink); background:#202226; border-radius:4px;
+    padding:14px 14px 14px 16px; display:flex; gap:14px; justify-content:space-between;
+  }
+  .discord-mock .dm-embed-main{ min-width:0; flex:1; }
+  .discord-mock .dm-embed-title{ font-family:'Anton',sans-serif; font-weight:400; font-size:15px; color:#fff; letter-spacing:0.3px; }
+  .discord-mock .dm-embed-desc{ color:#dcdee1; font-size:14.5px; margin-top:6px; }
   .discord-mock .dm-fields{ display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; margin-top:14px; }
   .discord-mock .dm-field-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#8b8f94; font-family:'JetBrains Mono',monospace; }
-  .discord-mock .dm-field-value{ font-size:15px; color:#dcdee1; margin-top:2px; }
-  .discord-mock .dm-foot{ display:flex; align-items:center; gap:8px; margin-top:14px; color:#72767d; font-size:12px; }
-  .discord-mock .dm-foot .av{ width:16px; height:16px; border-radius:50%; background:var(--pink); }
+  .discord-mock .dm-field-value{ font-size:14.5px; color:#dcdee1; margin-top:2px; }
+  .discord-mock .dm-field-value.hl{ background:#3a3020; color:var(--yellow); display:inline-block; padding:1px 6px; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:13px; }
+  .discord-mock .dm-thumb{
+    flex:none; width:60px; height:60px; border-radius:6px; overflow:hidden; margin-top:2px;
+  }
+  .discord-mock .dm-thumb img{ display:block; width:100%; height:100%; object-fit:cover; }
+  .discord-mock .dm-progress{ margin-top:14px; }
+  .discord-mock .dm-progress-label{ font-size:12px; color:#8b8f94; margin-bottom:6px; }
+  .discord-mock .dm-progress-bar{ display:flex; gap:2px; }
+  .discord-mock .dm-progress-bar span{ flex:1; height:9px; border-radius:1px; background:#37393f; }
+  .discord-mock .dm-progress-bar span.filled{ background:var(--pink); }
+  .discord-mock .dm-foot{ display:flex; align-items:center; gap:8px; margin-top:14px; color:#8b8f94; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .discord-mock .dm-edited{ color:#5c6067; font-size:11px; margin-top:6px; margin-left:52px; }
 
   .stat-strip{ border-top:2px solid var(--ink-2); border-bottom:2px solid var(--ink-2); background:var(--ink-2); }
   .stat-strip .wrap{ display:flex; flex-wrap:wrap; }
@@ -556,24 +574,38 @@
       </div>
     </div>
     <div class="hero-art">
-      <div class="discord-mock" role="img" aria-label="Example moderation case embed">
-        <div class="dm-titlebar">
-          <span class="dm-dot" style="background:#ff5f57"></span>
-          <span class="dm-dot" style="background:#febc2e"></span>
-          <span class="dm-dot" style="background:#28c840"></span>
-          <span class="terminal-head-label mono" style="margin-left:6px; font-family:'JetBrains Mono',monospace; font-size:12px; color:#7c8085;">#mod-logs</span>
-        </div>
-        <div class="dm-body">
-          <div class="dm-embed">
-            <div class="dm-embed-title">Case #482 — Warn</div>
-            <div class="dm-embed-sub">Member: Alex W.</div>
-            <div class="dm-fields">
-              <div><div class="dm-field-label">Reason</div><div class="dm-field-value">Rule 3 violation</div></div>
-              <div><div class="dm-field-label">Moderator</div><div class="dm-field-value">@staffmember</div></div>
-              <div><div class="dm-field-label">Prior warnings</div><div class="dm-field-value">1</div></div>
-              <div><div class="dm-field-label">Logged</div><div class="dm-field-value">just now</div></div>
+      <div class="discord-mock" role="img" aria-label="Example GTA VI countdown embed posted by the bot">
+        <div class="dm-row">
+          <img class="dm-avatar" src="ysxjlogo.png" alt="">
+          <div class="dm-col">
+            <div class="dm-meta">
+              <span class="dm-username">ysxj</span>
+              <span class="dm-appbadge">App</span>
+              <span class="dm-time">9:40 AM</span>
             </div>
-            <div class="dm-foot"><span class="av"></span> ysxj moderation log</div>
+            <div class="dm-embed">
+              <div class="dm-embed-main">
+                <div class="dm-embed-title">🌴 GTA VI Countdown</div>
+                <div class="dm-embed-desc">81d 23h 18m 1s until launch 🌴</div>
+                <div class="dm-fields">
+                  <div><div class="dm-field-label">📅 Release date</div><div class="dm-field-value hl">November 18, 2026</div></div>
+                  <div><div class="dm-field-label">📍 Platforms</div><div class="dm-field-value">PS5, Xbox Series X|S</div></div>
+                </div>
+                <div class="dm-progress">
+                  <div class="dm-progress-label">Progress (92.4%)</div>
+                  <div class="dm-progress-bar" aria-hidden="true">
+                    <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
+                    <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
+                    <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
+                    <span class="filled"></span><span></span>
+                  </div>
+                </div>
+                <div class="dm-foot">🌴 Leonida • GTA VI • Updates every 5 minutes • Today at 7:41 PM</div>
+              </div>
+              <div class="dm-thumb">
+                <img src="logothumb.png" alt="GTA VI key art">
+              </div>
+            </div>
           </div>
         </div>
       </div>
