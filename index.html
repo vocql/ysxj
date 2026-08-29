@@ -225,8 +225,9 @@
   .discord-mock .dm-time{ color:#767c85; font-size:12px; }
   .discord-mock .dm-embed{
     margin-top:6px; border-left:4px solid var(--pink); background:#202226; border-radius:4px;
-    padding:14px 14px 14px 16px; display:flex; gap:14px; justify-content:space-between;
+    padding:14px 14px 14px 16px;
   }
+  .discord-mock .dm-embed-top{ display:flex; gap:14px; justify-content:space-between; }
   .discord-mock .dm-embed-main{ min-width:0; flex:1; }
   .discord-mock .dm-embed-title{ font-family:'Anton',sans-serif; font-weight:400; font-size:15px; color:#fff; letter-spacing:0.3px; }
   .discord-mock .dm-embed-desc{ color:#dcdee1; font-size:14.5px; margin-top:6px; }
@@ -243,7 +244,7 @@
   .discord-mock .dm-progress-bar{ display:flex; gap:2px; }
   .discord-mock .dm-progress-bar span{ flex:1; height:9px; border-radius:1px; background:#37393f; }
   .discord-mock .dm-progress-bar span.filled{ background:var(--pink); }
-  .discord-mock .dm-foot{ display:flex; align-items:center; gap:8px; margin-top:14px; color:#8b8f94; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .discord-mock .dm-foot{ display:flex; align-items:center; gap:6px; margin-top:14px; color:#8b8f94; font-size:11px; white-space:nowrap; }
   .discord-mock .dm-edited{ color:#5c6067; font-size:11px; margin-top:6px; margin-left:52px; }
 
   .stat-strip{ border-top:2px solid var(--ink-2); border-bottom:2px solid var(--ink-2); background:var(--ink-2); }
@@ -584,28 +585,31 @@
               <span class="dm-time">9:40 AM</span>
             </div>
             <div class="dm-embed">
-              <div class="dm-embed-main">
-                <div class="dm-embed-title">🌴 GTA VI Countdown</div>
-                <div class="dm-embed-desc">81d 23h 18m 1s until launch 🌴</div>
-                <div class="dm-fields">
-                  <div><div class="dm-field-label">📅 Release date</div><div class="dm-field-value hl">November 18, 2026</div></div>
-                  <div><div class="dm-field-label">📍 Platforms</div><div class="dm-field-value">PS5, Xbox Series X|S</div></div>
-                </div>
-                <div class="dm-progress">
-                  <div class="dm-progress-label">Progress (92.4%)</div>
-                  <div class="dm-progress-bar" aria-hidden="true">
-                    <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
-                    <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
-                    <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
-                    <span class="filled"></span><span></span>
+              <div class="dm-embed-top">
+                <div class="dm-embed-main">
+                  <div class="dm-embed-title">🌴 GTA VI Countdown</div>
+                  <div class="dm-embed-desc">81d 23h 18m 1s until launch 🌴</div>
+                  <div class="dm-fields">
+                    <div><div class="dm-field-label">📅 Release date</div><div class="dm-field-value hl">November 18, 2026</div></div>
+                    <div><div class="dm-field-label">📍 Platforms</div><div class="dm-field-value">PS5, Xbox Series X|S</div></div>
+                  </div>
+                  <div class="dm-progress">
+                    <div class="dm-progress-label">Progress (92.4%)</div>
+                    <div class="dm-progress-bar" aria-hidden="true">
+                      <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
+                      <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
+                      <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
+                      <span class="filled"></span><span></span>
+                    </div>
                   </div>
                 </div>
-                <div class="dm-foot">🌴 Leonida • GTA VI • Updates every 5 minutes • Today at 7:41 PM</div>
+                <div class="dm-thumb">
+                  <img src="logothumb.png" alt="GTA VI key art">
+                </div>
               </div>
-              <div class="dm-thumb">
-                <img src="logothumb.png" alt="GTA VI key art">
-              </div>
+              <div class="dm-foot">🌴 Leonida • GTA VI • Updates every 5 minutes • Today at 7:41 PM</div>
             </div>
+            <div class="dm-edited">(edited)</div>
           </div>
         </div>
       </div>
