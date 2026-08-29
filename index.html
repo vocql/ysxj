@@ -3,21 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ysxj</title>
+<title>ysxj — Discord Moderation Bot</title>
+<meta name="description" content="ysxj is a Discord moderation bot with case history, an automated spam trap, media-lock mode, welcome messages, and a full slash-command reference.">
 <link rel="icon" type="image/png" href="ysxjlogo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#0a0a0a;
-    --ink-2:#151515;
-    --concrete:#2b2b28;
-    --paper:#f2f0e9;
-    --paper-dim:#c9c7bd;
+    --ink:#0b0c0a;
+    --ink-2:#17170f;
+    --ink-3:#1e1e15;
+    --concrete:#403c34;
+    --concrete-2:#57503f;
+    --paper:#ece4cf;
+    --paper-dim:#b6ad95;
+    --paper-faint:#7d7768;
     --pink:#ff2f92;
-    --pink-dim:#ff2f9233;
-    --tape:#e8e2c8;
+    --pink-dim:#ff2f9226;
+    --yellow:#f0c23e;
+    --rust:#cc4a1f;
+    --green:#3ecf7a;
+    --tape:#e6dcb6;
     --radius:2px;
+    --maxw:1180px;
   }
 
   *{box-sizing:border-box;}
@@ -30,429 +39,476 @@
     font-size:18px;
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
+    position:relative;
   }
 
-  h1,h2,h3{
+  .skip-link{
+    position:absolute; left:-9999px; top:0; z-index:999; background:var(--pink); color:var(--ink);
+    padding:12px 20px; font-family:'Anton',sans-serif; text-transform:uppercase; text-decoration:none;
+  }
+  .skip-link:focus{ left:12px; top:12px; }
+
+  .grain{
+    position:fixed; inset:0; z-index:200; pointer-events:none;
+    opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  h1,h2,h3,h4{
     font-family:'Anton', sans-serif;
     font-weight:400;
     letter-spacing:0.5px;
     margin:0;
     text-transform:uppercase;
   }
-
   .tag{
     font-family:'Permanent Marker', cursive;
     text-transform:none;
     letter-spacing:0;
   }
-
   a{color:inherit;}
-  code, .mono{
-    font-family:'Courier New', monospace;
-  }
-
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
   ::selection{background:var(--pink); color:var(--ink);}
-
-  /* focus visibility */
   a:focus-visible, button:focus-visible, input:focus-visible{
-    outline:3px solid var(--pink);
-    outline-offset:2px;
+    outline:3px solid var(--pink); outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px;}
+  section{position:relative; padding:110px 0;}
+
+  .wall{
+    background:
+      radial-gradient(ellipse at 15% 10%, rgba(255,47,146,0.05), transparent 45%),
+      radial-gradient(ellipse at 85% 90%, rgba(240,194,62,0.04), transparent 40%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 34px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 220px),
+      var(--ink);
   }
 
-  @media (prefers-reduced-motion: reduce){
-    *{animation:none !important; transition:none !important;}
-  }
+  .torn{ position:relative; height:34px; overflow:hidden; }
+  .torn svg{ display:block; width:100%; height:100%; }
 
-  /* ---------- layout helpers ---------- */
-  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
-  section{position:relative; padding:100px 0;}
-
-  /* ---------- spray-can pill buttons ---------- */
+  /* ---------- buttons ---------- */
   .pill-row{display:flex; flex-wrap:wrap; gap:16px; align-items:center;}
   .pill{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    padding:14px 30px;
-    border-radius:999px;
-    font-family:'Anton', sans-serif;
-    font-size:17px;
-    letter-spacing:0.5px;
-    text-transform:uppercase;
-    text-decoration:none;
-    border:2px solid var(--paper);
-    background:transparent;
-    color:var(--paper);
-    cursor:pointer;
-    position:relative;
+    display:inline-flex; align-items:center; gap:10px;
+    padding:14px 30px; border-radius:999px;
+    font-family:'Anton', sans-serif; font-size:17px; letter-spacing:0.5px;
+    text-transform:uppercase; text-decoration:none;
+    border:2px solid var(--paper); background:transparent; color:var(--paper);
+    cursor:pointer; position:relative;
     transition: transform .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
     white-space:nowrap;
   }
-  .pill.solid{
-    background:var(--paper);
-    color:var(--ink);
-    border-color:var(--paper);
-  }
-  .pill.accent{
-    background:var(--pink);
-    color:var(--ink);
-    border-color:var(--pink);
-    box-shadow:0 0 0 0 var(--pink-dim);
-  }
-  .pill:hover{
-    transform:translate(-2px,-2px);
-    box-shadow:4px 4px 0 0 var(--pink);
-  }
+  .pill.solid{ background:var(--paper); color:var(--ink); border-color:var(--paper); }
+  .pill.accent{ background:var(--pink); color:var(--ink); border-color:var(--pink); }
+  .pill:hover{ transform:translate(-2px,-2px); box-shadow:4px 4px 0 0 var(--pink); }
   .pill.solid:hover{ box-shadow:4px 4px 0 0 var(--paper); background:var(--ink); color:var(--paper); border-color:var(--paper);}
-  .pill.accent:hover{ box-shadow:4px 4px 0 0 var(--paper); }
-  .pill svg{width:18px; height:18px; flex:none;}
+  .pill.accent:hover{ box-shadow:4px 4px 0 0 var(--yellow); }
+  .pill.sm{ padding:9px 20px; font-size:14px; }
+
+  .icon-btn{
+    display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid #3a3a32;
+    color:var(--paper-dim); font-family:'JetBrains Mono',monospace; font-size:12px; text-transform:uppercase;
+    letter-spacing:0.5px; padding:6px 10px; border-radius:4px; cursor:pointer; transition:all .15s ease;
+  }
+  .icon-btn:hover{ border-color:var(--pink); color:var(--paper); }
+  .icon-btn.copied{ border-color:var(--green); color:var(--green); }
 
   /* ---------- nav ---------- */
   header.nav{
     position:sticky; top:0; z-index:50;
-    background:rgba(10,10,10,0.88);
-    backdrop-filter:blur(6px);
+    background:rgba(11,12,10,0.9); backdrop-filter:blur(6px);
     border-bottom:2px solid var(--ink-2);
   }
   .nav-inner{
-    max-width:1180px; margin:0 auto; padding:16px 28px;
-    display:flex; align-items:center; justify-content:space-between;
-    gap:20px;
+    max-width:var(--maxw); margin:0 auto; padding:14px 28px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
   }
-  .brand{
-    display:flex; align-items:center; gap:12px;
-    font-family:'Anton', sans-serif;
-    font-size:22px; letter-spacing:1px;
-  }
-  .brand img{height:38px; width:38px; border-radius:50%; display:block;}
+  .brand{ display:flex; align-items:center; gap:12px; font-family:'Anton', sans-serif; font-size:22px; letter-spacing:1px; }
+  .brand img{height:38px; width:38px; border-radius:50%; display:block; border:2px solid var(--pink);}
   nav.links{display:flex; gap:26px;}
   nav.links a{
-    text-decoration:none;
-    font-size:16px;
-    text-transform:uppercase;
-    letter-spacing:0.5px;
-    color:var(--paper-dim);
-    border-bottom:2px solid transparent;
-    padding-bottom:2px;
+    text-decoration:none; font-size:16px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--paper-dim); border-bottom:2px solid transparent; padding-bottom:2px;
     transition:color .15s ease, border-color .15s ease;
   }
   nav.links a:hover{color:var(--paper); border-color:var(--pink);}
   .nav-cta{display:flex; gap:12px;}
-  .nav-cta .pill{padding:9px 20px; font-size:14px;}
   #navToggle{display:none;}
-
-  @media (max-width:820px){
+  @media (max-width:900px){
     nav.links{display:none;}
-    #navToggle{
-      display:inline-flex; background:none; border:2px solid var(--paper);
-      color:var(--paper); border-radius:999px; padding:8px 14px;
-      font-family:'Anton',sans-serif; text-transform:uppercase; font-size:13px;
-    }
-    .nav-cta .pill.ghost-mobile{display:none;}
+    #navToggle{ display:inline-flex; background:none; border:2px solid var(--paper); color:var(--paper); border-radius:999px; padding:8px 14px; font-family:'Anton',sans-serif; text-transform:uppercase; font-size:13px; }
   }
 
   /* ---------- hero ---------- */
   .hero{
-    padding:0;
-    min-height:92vh;
-    display:flex;
-    align-items:center;
+    padding:0; min-height:96vh; display:flex; align-items:center;
+    position:relative; overflow:hidden;
     background:
-      linear-gradient(180deg, rgba(10,10,10,0.35) 0%, rgba(10,10,10,0.55) 55%, var(--ink) 100%),
-      url('./assets/texture-bg.png');
-    background-size:cover;
-    background-position:center;
+      radial-gradient(circle at 20% 20%, rgba(255,47,146,0.10), transparent 40%),
+      radial-gradient(circle at 82% 70%, rgba(240,194,62,0.08), transparent 45%),
+      linear-gradient(180deg, #0b0c0a 0%, #17170f 60%, #0b0c0a 100%);
     border-bottom:2px solid var(--ink-2);
+  }
+  .hero::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:0.5;
+    background-image:
+      repeating-linear-gradient(115deg, transparent 0 90px, rgba(255,255,255,0.02) 90px 91px),
+      repeating-linear-gradient(25deg, transparent 0 120px, rgba(255,255,255,0.02) 120px 121px);
   }
   .hero-inner{
-    max-width:1180px; margin:0 auto; padding:120px 28px 90px;
+    position:relative; z-index:2;
+    max-width:var(--maxw); margin:0 auto; padding:130px 28px 90px;
     display:grid; grid-template-columns: 1.1fr 0.9fr; gap:56px; align-items:center;
   }
-  .hero-eyebrow{
-    font-family:'Permanent Marker', cursive;
-    color:var(--pink);
-    font-size:18px;
-    display:inline-block;
-    transform:rotate(-2deg);
-    margin-bottom:14px;
-  }
-  .hero h1{
-    font-size:clamp(48px, 7vw, 92px);
-    line-height:0.95;
-    text-shadow:
-      3px 0 0 var(--pink),
-      -2px 0 0 var(--ink);
-  }
-  .hero p.lede{
-    max-width:520px;
-    font-size:22px;
-    color:var(--paper-dim);
-    margin-top:22px;
-  }
-  .hero .pill-row{margin-top:36px;}
-  .hero-art{
-    display:flex; justify-content:center; align-items:center;
-  }
-  .hero-art img{
-    width:min(360px, 100%);
-    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
-    animation: floaty 7s ease-in-out infinite;
-  }
-  @keyframes floaty{
-    0%,100%{ transform:translateY(0px) rotate(-1.5deg); }
-    50%{ transform:translateY(-14px) rotate(1.5deg); }
-  }
 
-  .stat-strip{
-    border-top:2px solid var(--ink-2);
-    border-bottom:2px solid var(--ink-2);
-    background:var(--ink-2);
+  .hero-kicker{ margin-bottom:18px; }
+  .spray-tag-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:13px; letter-spacing:1px; text-transform:uppercase;
+    color:var(--yellow); border:1.5px dashed var(--yellow); padding:7px 14px; border-radius:999px;
+    transform:rotate(-1.5deg); background:rgba(240,194,62,0.06);
   }
-  .stat-strip .wrap{
-    display:flex; flex-wrap:wrap; gap:0;
-    padding:0;
+  .spray-tag-badge .dot{ width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); }
+
+  .spray-title{ position:relative; display:inline-block; }
+  .spray-title .halo{
+    position:absolute; inset:-14px; z-index:0;
+    background:var(--pink); filter:blur(28px); opacity:0.35; border-radius:50%;
   }
-  .stat{
-    flex:1 1 200px;
-    padding:26px 28px;
-    border-right:1px solid #303030;
+  .spray-title h1{
+    position:relative; z-index:1;
+    font-size:clamp(56px, 8vw, 104px); line-height:0.9;
+    color:var(--paper);
+    -webkit-text-stroke:2px var(--ink);
+    text-shadow: 4px 0 0 var(--pink), -3px 0 0 var(--rust);
+    clip-path:inset(0 100% 0 0);
+    animation: sprayReveal 1.1s cubic-bezier(.2,.9,.2,1) 0.15s forwards;
   }
+  @keyframes sprayReveal{ to{ clip-path:inset(0 0 0 0); } }
+  .spray-dot{
+    position:absolute; border-radius:50%; background:var(--pink); opacity:0;
+    animation: dotPop 0.5s ease forwards;
+  }
+  @keyframes dotPop{ from{opacity:0; transform:scale(0);} 60%{opacity:0.8;} to{opacity:0.55; transform:scale(1);} }
+
+  .hero p.lede{ max-width:520px; font-size:22px; color:var(--paper-dim); margin-top:24px; }
+
+  .badge-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+  .stat-badge{
+    display:inline-flex; align-items:center; gap:8px; background:var(--ink-2); border:1px solid #2c2c24;
+    padding:7px 14px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--paper-dim);
+  }
+  .stat-badge strong{ color:var(--paper); }
+  .stat-badge .swatch{ width:8px; height:8px; border-radius:2px; }
+
+  .hero .pill-row{margin-top:32px;}
+
+  /* ---------- hero embed mockup ---------- */
+  .hero-art{ display:flex; justify-content:center; align-items:center; position:relative; }
+  .discord-mock{
+    width:min(380px,100%); background:#1a1b1f; border:1px solid #2b2c31; border-radius:8px;
+    padding:0; transform:rotate(2deg); box-shadow:12px 14px 0 0 rgba(0,0,0,0.5), 0 0 0 2px var(--ink);
+    font-family:'Barlow Condensed', sans-serif;
+  }
+  .discord-mock .dm-titlebar{
+    display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid #2b2c31; background:#151619;
+    border-radius:8px 8px 0 0;
+  }
+  .discord-mock .dm-dot{ width:10px; height:10px; border-radius:50%; }
+  .discord-mock .dm-body{ padding:18px 18px 20px; }
+  .discord-mock .dm-embed{ border-left:4px solid var(--pink); background:#202226; border-radius:4px; padding:14px 16px; }
+  .discord-mock .dm-embed-title{ font-family:'Anton',sans-serif; font-size:16px; color:#fff; letter-spacing:0.3px; }
+  .discord-mock .dm-embed-sub{ color:#9aa0a6; font-size:14px; margin-top:2px; font-family:'Barlow Condensed'; }
+  .discord-mock .dm-fields{ display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; margin-top:14px; }
+  .discord-mock .dm-field-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#8b8f94; font-family:'JetBrains Mono',monospace; }
+  .discord-mock .dm-field-value{ font-size:15px; color:#dcdee1; margin-top:2px; }
+  .discord-mock .dm-foot{ display:flex; align-items:center; gap:8px; margin-top:14px; color:#72767d; font-size:12px; }
+  .discord-mock .dm-foot .av{ width:16px; height:16px; border-radius:50%; background:var(--pink); }
+
+  .stat-strip{ border-top:2px solid var(--ink-2); border-bottom:2px solid var(--ink-2); background:var(--ink-2); }
+  .stat-strip .wrap{ display:flex; flex-wrap:wrap; }
+  .stat{ flex:1 1 200px; padding:26px 28px; border-right:1px solid #303030; }
   .stat:last-child{border-right:none;}
   .stat .num{font-family:'Anton',sans-serif; font-size:34px; color:var(--pink);}
   .stat .label{color:var(--paper-dim); font-size:15px; text-transform:uppercase; letter-spacing:1px;}
 
-  /* ---------- section headers ---------- */
-  .section-head{margin-bottom:52px; max-width:720px;}
-  .section-head .tag{color:var(--pink); font-size:20px; transform:rotate(-1.5deg); display:inline-block; margin-bottom:10px;}
+  .section-head{margin-bottom:56px; max-width:720px;}
+  .section-head .tag{color:var(--yellow); font-size:20px; transform:rotate(-1.5deg); display:inline-block; margin-bottom:10px;}
   .section-head h2{font-size:clamp(34px, 4.5vw, 52px);}
   .section-head p{color:var(--paper-dim); font-size:19px; margin-top:14px;}
 
-  /* ---------- feature tiles (spray stencil cards) ---------- */
-  .feature-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:22px;
-  }
+  .reveal{ opacity:0; transform:translateY(22px); transition:opacity .5s ease, transform .5s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ---------- feature sticker wall ---------- */
+  .feature-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:30px 24px; }
   @media (max-width:900px){ .feature-grid{grid-template-columns:repeat(2,1fr);} }
   @media (max-width:600px){ .feature-grid{grid-template-columns:1fr;} }
 
   .feature{
-    background:var(--ink-2);
-    border:2px solid #262626;
-    border-radius:var(--radius);
-    padding:26px 24px;
-    position:relative;
-    overflow:hidden;
-    transition:transform .15s ease, border-color .15s ease;
+    --rot:-1.5deg;
+    background:var(--ink-2); border:2px solid #262620; padding:28px 24px 26px;
+    position:relative; transform:rotate(var(--rot));
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    box-shadow:6px 6px 0 0 rgba(0,0,0,0.5);
   }
-  .feature::before{
-    content:"";
-    position:absolute; inset:0;
-    background:radial-gradient(circle at 100% 0%, var(--pink-dim), transparent 55%);
-    opacity:0;
-    transition:opacity .2s ease;
-    pointer-events:none;
+  .feature:nth-child(2){--rot:1deg;}
+  .feature:nth-child(3){--rot:-0.6deg;}
+  .feature:nth-child(4){--rot:1.4deg;}
+  .feature:nth-child(5){--rot:-1.1deg;}
+  .feature:nth-child(6){--rot:0.7deg;}
+  .feature:nth-child(7){--rot:-1.7deg;}
+  .feature:nth-child(8){--rot:0.4deg;}
+  .feature:nth-child(9){--rot:-0.9deg;}
+  .feature:hover{ transform:rotate(0deg) translateY(-6px); box-shadow:8px 10px 0 0 var(--pink); border-color:var(--pink); }
+  .feature .tape-corner{
+    position:absolute; top:-10px; left:24px; width:64px; height:20px; background:var(--tape);
+    opacity:0.92; transform:rotate(-4deg); box-shadow:0 2px 4px rgba(0,0,0,0.4);
   }
-  .feature:hover{transform:translateY(-4px); border-color:var(--pink);}
-  .feature:hover::before{opacity:1;}
-  .feature .icon{font-size:30px; margin-bottom:14px; display:block;}
-  .feature h3{font-size:24px; margin-bottom:10px;}
+  .feature .icon{font-size:28px; margin-bottom:12px; display:block;}
+  .feature h3{font-size:23px; margin-bottom:10px;}
   .feature p{color:var(--paper-dim); font-size:16.5px; margin:0;}
   .feature .stencil-num{
-    position:absolute; top:14px; right:18px;
-    font-family:'Anton',sans-serif;
-    font-size:44px;
-    color:#3a3a3a;
-    -webkit-text-stroke:1px #4a4a4a;
+    position:absolute; top:12px; right:16px; font-family:'JetBrains Mono',monospace; font-weight:800;
+    font-size:13px; color:#5a5a52; letter-spacing:1px;
   }
+  .feature .jump{
+    display:inline-block; margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--pink); text-decoration:none; border-bottom:1px dashed var(--pink);
+  }
+  .feature .jump:hover{ color:var(--yellow); border-color:var(--yellow); }
 
-  /* ---------- setup steps ---------- */
-  .steps{
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:18px;
-  }
+  /* ---------- setup ---------- */
+  .steps{ display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; counter-reset:stepnum; }
   @media (max-width:900px){ .steps{grid-template-columns:repeat(2,1fr);} }
   @media (max-width:560px){ .steps{grid-template-columns:1fr;} }
   .step{
-    background:var(--ink-2);
-    border:2px dashed #3a3a3a;
-    padding:22px 20px 24px;
-    position:relative;
+    background:var(--ink-2); border:2px solid #2c2c24; padding:24px 20px 24px; position:relative;
+    counter-increment:stepnum;
   }
-  .step .step-tape{
-    position:absolute; top:-10px; left:20px;
-    background:var(--tape); color:var(--ink);
-    font-family:'Permanent Marker', cursive;
-    font-size:14px; padding:3px 12px;
-    transform:rotate(-3deg);
-    box-shadow:0 2px 4px rgba(0,0,0,0.4);
+  .step::before{
+    content:counter(stepnum,decimal-leading-zero);
+    font-family:'Anton',sans-serif; font-size:46px; color:transparent;
+    -webkit-text-stroke:1.5px #45453a; display:block; margin-bottom:8px;
   }
-  .step h3{font-size:20px; margin:16px 0 8px;}
+  .step .gauge{ height:6px; background:#2c2c24; border-radius:99px; overflow:hidden; margin-bottom:14px; }
+  .step .gauge span{ display:block; height:100%; background:linear-gradient(90deg, var(--pink), var(--yellow)); }
+  .step:nth-child(1) .gauge span{width:25%;}
+  .step:nth-child(2) .gauge span{width:50%;}
+  .step:nth-child(3) .gauge span{width:75%;}
+  .step:nth-child(4) .gauge span{width:100%;}
+  .step h3{font-size:20px; margin:0 0 8px;}
   .step p{color:var(--paper-dim); font-size:16px; margin:0;}
 
-  /* ---------- commands ---------- */
-  .cmd-controls{
-    display:flex; flex-wrap:wrap; gap:12px; margin-bottom:30px;
-    align-items:center;
+  .terminal{
+    margin-top:44px; background:#0f100c; border:2px solid #2c2c24; border-radius:4px; overflow:hidden;
   }
-  .search-box{
-    flex:1 1 260px;
-    position:relative;
+  .terminal-head{
+    display:flex; align-items:center; justify-content:space-between; padding:10px 16px;
+    background:var(--ink-2); border-bottom:1px solid #2c2c24;
   }
+  .terminal-head .dots{ display:flex; gap:6px; }
+  .terminal-head .dots span{ width:10px; height:10px; border-radius:50%; display:block; }
+  .terminal-head .label{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--paper-faint); text-transform:uppercase; letter-spacing:0.5px; }
+  .terminal-body{ padding:20px 22px; font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--paper); }
+  .terminal-body .line{ margin-bottom:10px; }
+  .terminal-body .line:last-child{ margin-bottom:0; }
+  .terminal-body .prompt{ color:var(--pink); margin-right:8px; }
+  .terminal-body .comment{ color:var(--paper-faint); }
+
+  /* ---------- callout / permissions matrix ---------- */
+  .callout{
+    background:linear-gradient(135deg, var(--ink-2), var(--concrete));
+    border:2px solid #4a4536; padding:34px 34px 30px; position:relative;
+    box-shadow:8px 8px 0 0 rgba(0,0,0,0.45);
+  }
+  .callout .pin{
+    position:absolute; top:-16px; left:38px; width:22px; height:22px; border-radius:50%;
+    background:var(--rust); box-shadow:0 3px 6px rgba(0,0,0,0.5), inset 0 0 0 3px #7a2b10;
+  }
+  .callout h4{font-family:'Anton',sans-serif; font-size:21px; text-transform:uppercase; display:flex; align-items:center; gap:10px;}
+  .callout h4::before{ content:"⚠"; font-size:24px; color:var(--yellow); }
+  .callout p{color:var(--paper-dim); margin-top:14px; font-size:16.5px;}
+  .callout ul{color:var(--paper-dim); font-size:16px; margin:14px 0 0; padding-left:20px;}
+  .callout li{margin-bottom:8px;}
+  .callout li strong{color:var(--paper);}
+  .callout .hint{
+    margin-top:20px; padding:14px 16px; border-left:3px solid var(--yellow);
+    background:rgba(240,194,62,0.06); font-size:15.5px; color:var(--paper-dim);
+  }
+  .callout code{ background:rgba(0,0,0,0.35); padding:2px 6px; border-radius:2px; color:var(--yellow); }
+
+  .matrix-wrap{ margin-top:44px; overflow-x:auto; }
+  table.matrix{ width:100%; border-collapse:collapse; min-width:640px; }
+  table.matrix caption{ text-align:left; font-family:'Anton',sans-serif; font-size:18px; margin-bottom:14px; letter-spacing:0.5px; }
+  table.matrix th, table.matrix td{ padding:14px 16px; text-align:left; border-bottom:1px solid #2c2c24; font-size:15.5px; }
+  table.matrix thead th{ font-family:'JetBrains Mono',monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--paper-faint); border-bottom:2px solid var(--pink); }
+  table.matrix tbody th{ color:var(--paper); font-family:'Barlow Condensed'; font-weight:600; text-transform:none; letter-spacing:0; }
+  table.matrix td .yes{ color:var(--green); font-family:'JetBrains Mono',monospace; font-weight:800; }
+  table.matrix td .no{ color:#5c584c; font-family:'JetBrains Mono',monospace; }
+
+  /* ---------- commands: sidebar + flyer wall ---------- */
+  .cmd-layout{ display:grid; grid-template-columns:240px 1fr; gap:40px; align-items:start; }
+  @media (max-width:900px){ .cmd-layout{ grid-template-columns:1fr; } }
+
+  .cmd-sidebar{ position:sticky; top:96px; }
+  .cmd-sidebar-title{ font-family:'JetBrains Mono',monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:1px; color:var(--paper-faint); margin-bottom:14px; }
+  .cmd-sidebar ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+  .cmd-sidebar button{
+    display:flex; justify-content:space-between; width:100%; text-align:left; background:none; border:none;
+    color:var(--paper-dim); font-family:'Barlow Condensed'; font-size:16px; padding:9px 12px; border-left:3px solid transparent;
+    cursor:pointer; border-radius:2px;
+  }
+  .cmd-sidebar button:hover{ color:var(--paper); background:rgba(255,255,255,0.03); }
+  .cmd-sidebar button.active{ color:var(--pink); border-left-color:var(--pink); background:rgba(255,47,146,0.06); }
+  .cmd-sidebar button .n{ color:var(--paper-faint); font-family:'JetBrains Mono',monospace; font-size:12.5px; }
+
+  .cmd-controls{ display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px; align-items:center; }
+  .search-box{ flex:1 1 260px; position:relative; }
   .search-box input{
-    width:100%;
-    background:var(--ink-2);
-    border:2px solid #333;
-    color:var(--paper);
-    padding:13px 18px;
-    border-radius:999px;
-    font-family:'Barlow Condensed', sans-serif;
-    font-size:17px;
+    width:100%; background:var(--ink-2); border:2px solid #333; color:var(--paper);
+    padding:13px 18px; border-radius:999px; font-family:'Barlow Condensed', sans-serif; font-size:17px;
   }
   .search-box input::placeholder{color:#777;}
   .search-box input:focus{border-color:var(--pink); outline:none;}
+  .cmd-count{color:var(--paper-dim); font-size:15px; margin-bottom:22px;}
+  .cmd-count strong{color:var(--yellow);}
 
-  .filter-row{display:flex; flex-wrap:wrap; gap:8px;}
-  .filter-btn{
-    background:none;
-    border:2px solid #333;
-    color:var(--paper-dim);
-    padding:8px 16px;
-    border-radius:999px;
-    font-family:'Barlow Condensed', sans-serif;
-    font-size:15px;
-    text-transform:uppercase;
-    letter-spacing:0.5px;
-    cursor:pointer;
-    transition:all .15s ease;
+  .flyer{
+    background:var(--ink-2); border:2px solid #2a2a22; margin-bottom:16px;
+    position:relative; overflow:hidden; scroll-margin-top:96px;
   }
-  .filter-btn:hover{border-color:var(--paper); color:var(--paper);}
-  .filter-btn.active{background:var(--pink); border-color:var(--pink); color:var(--ink); font-weight:600;}
-
-  .cmd-count{color:var(--paper-dim); font-size:15px; margin-bottom:18px;}
-
-  .cmd-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-    gap:16px;
+  .flyer::before{
+    content:""; position:absolute; top:-2px; left:26px; width:22px; height:12px;
+    background:#8b8b83; border-radius:2px; box-shadow:0 2px 2px rgba(0,0,0,0.5);
+    transform:rotate(-8deg); z-index:2;
   }
+  .flyer-head{
+    width:100%; text-align:left; background:none; border:none; color:var(--paper);
+    padding:20px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+    cursor:pointer; font-family:inherit;
+  }
+  .flyer-head h3{ font-size:22px; display:flex; align-items:center; gap:10px; }
+  .flyer-head .cat-desc{ display:block; color:var(--paper-dim); font-size:14.5px; font-family:'Barlow Condensed'; text-transform:none; margin-top:4px; }
+  .flyer-head .badge{
+    font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--ink); background:var(--yellow);
+    padding:4px 10px; border-radius:999px; white-space:nowrap; font-weight:800;
+  }
+  .flyer-head .chevron{ font-family:'Anton',sans-serif; color:var(--pink); font-size:20px; transition:transform .2s ease; flex:none; }
+  .flyer.open .chevron{ transform:rotate(180deg); }
+  .flyer-body{ max-height:0; overflow:hidden; transition:max-height .28s ease; }
+  .flyer.open .flyer-body{ max-height:6000px; }
+  .flyer-body-inner{ padding:0 22px 26px; display:flex; flex-direction:column; gap:14px; }
+
   .cmd-card{
-    background:var(--ink-2);
-    border:1px solid #262626;
-    border-left:4px solid var(--pink);
-    padding:18px 20px;
-    position:relative;
+    background:var(--ink); border:1px solid #262626; border-left:4px solid var(--pink);
+    padding:16px 18px; position:relative;
   }
-  .cmd-card .cmd-name{
-    font-family:'Anton', sans-serif;
-    font-size:19px;
-    color:var(--paper);
-    text-shadow:1px 0 0 var(--pink-dim);
-  }
+  .cmd-card .cmd-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .cmd-card .cmd-name{ font-family:'JetBrains Mono', monospace; font-weight:800; font-size:16px; color:var(--paper); }
   .cmd-card .cmd-name::before{content:"/"; color:var(--pink);}
   .cmd-card .cmd-perm{
-    display:inline-block;
-    margin-top:8px;
-    font-size:12px;
-    letter-spacing:0.5px;
-    text-transform:uppercase;
-    color:#8a8a8a;
-    border:1px solid #3a3a3a;
-    padding:2px 8px;
-    border-radius:999px;
+    display:inline-block; margin-top:8px; font-size:11.5px; letter-spacing:0.5px; text-transform:uppercase;
+    color:#9a9a90; border:1px solid #3a3a3a; padding:2px 8px; border-radius:999px; font-family:'Barlow Condensed';
   }
-  .cmd-card p{color:var(--paper-dim); font-size:15.5px; margin:10px 0 0;}
+  .cmd-card p.desc{color:var(--paper-dim); font-size:15px; margin:10px 0 0;}
+  .cmd-card .cmd-usage{
+    margin-top:12px; background:#141410; border:1px dashed #34342a; border-radius:3px; padding:8px 12px;
+    font-family:'JetBrains Mono',monospace; font-size:13.5px; color:var(--yellow); overflow-x:auto; white-space:nowrap;
+  }
+  .cmd-card .cmd-example{ margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--paper-faint); }
+  .cmd-card .cmd-example b{ color:var(--paper-dim); font-weight:600; font-family:'Barlow Condensed'; }
   .cmd-card[data-hidden="true"]{display:none;}
+  .flyer[data-hidden="true"]{display:none;}
 
-  .cmd-category{margin-bottom:56px;}
-  .cmd-category h3{
-    font-size:26px;
-    margin-bottom:6px;
-    display:flex; align-items:center; gap:10px;
+  /* ---------- FAQ ---------- */
+  .faq-list{ display:flex; flex-direction:column; gap:12px; }
+  .faq-item{ background:var(--ink-2); border:2px solid #262620; }
+  .faq-q{
+    width:100%; text-align:left; background:none; border:none; color:var(--paper); cursor:pointer;
+    padding:20px 22px; display:flex; justify-content:space-between; align-items:center; gap:16px; font-family:'Barlow Condensed'; font-size:18px; font-weight:600;
   }
-  .cmd-category .cat-desc{color:var(--paper-dim); font-size:16px; margin-bottom:20px;}
+  .faq-q .chevron{ font-family:'Anton',sans-serif; color:var(--pink); font-size:18px; transition:transform .2s ease; flex:none; }
+  .faq-item.open .chevron{ transform:rotate(180deg); }
+  .faq-a{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
+  .faq-item.open .faq-a{ max-height:400px; }
+  .faq-a p{ padding:0 22px 20px; margin:0; color:var(--paper-dim); font-size:16px; }
 
-  /* ---------- exemption note (call-out) ---------- */
-  .callout{
-    background:linear-gradient(135deg, var(--ink-2), var(--concrete));
-    border:2px solid #3a3a3a;
-    padding:30px 32px;
-    margin-top:20px;
-    position:relative;
+  /* ---------- changelog ---------- */
+  .changelog{ position:relative; padding-left:26px; }
+  .changelog::before{ content:""; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:repeating-linear-gradient(180deg, var(--pink) 0 6px, transparent 6px 12px); }
+  .change-entry{ position:relative; margin-bottom:34px; }
+  .change-entry:last-child{ margin-bottom:0; }
+  .change-entry::before{ content:""; position:absolute; left:-26px; top:4px; width:14px; height:14px; border-radius:50%; background:var(--ink); border:3px solid var(--pink); }
+  .change-head{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .change-version{ font-family:'Anton',sans-serif; font-size:20px; color:var(--paper); }
+  .change-date{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--paper-faint); }
+  .change-entry ul{ margin:10px 0 0; padding-left:20px; color:var(--paper-dim); font-size:16px; }
+  .change-entry li{ margin-bottom:6px; }
+  .change-tag{
+    font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
+    padding:2px 8px; border-radius:999px; margin-left:4px;
   }
-  .callout::before{
-    content:"⚠";
-    font-size:26px;
-    color:var(--pink);
-    margin-right:10px;
-  }
-  .callout h4{font-family:'Anton',sans-serif; font-size:20px; display:inline; text-transform:uppercase;}
-  .callout p{color:var(--paper-dim); margin-top:14px; font-size:16.5px;}
-  .callout ul{color:var(--paper-dim); font-size:16px; margin:14px 0 0; padding-left:20px;}
-  .callout li{margin-bottom:6px;}
+  .change-tag.new{ background:rgba(62,207,122,0.15); color:var(--green); }
+  .change-tag.fix{ background:rgba(240,194,62,0.15); color:var(--yellow); }
+  .change-tag.change{ background:rgba(255,47,146,0.15); color:var(--pink); }
 
   /* ---------- CTA band ---------- */
   .cta-band{
-    background:var(--ink-2);
-    border-top:2px solid var(--pink);
-    border-bottom:2px solid var(--pink);
-    padding:80px 0;
-    text-align:center;
+    background:var(--ink-2); border-top:2px solid var(--pink); border-bottom:2px solid var(--pink);
+    padding:90px 0; text-align:center; position:relative; overflow:hidden;
   }
   .cta-band h2{font-size:clamp(34px, 5vw, 58px);}
   .cta-band p{color:var(--paper-dim); font-size:20px; max-width:560px; margin:16px auto 32px;}
   .cta-band .pill-row{justify-content:center;}
 
   /* ---------- footer ---------- */
-  footer{
-    padding:50px 0 40px;
-    border-top:2px solid var(--ink-2);
-  }
-  .foot-inner{
-    display:flex; flex-wrap:wrap; justify-content:space-between; gap:20px; align-items:center;
-  }
-  .foot-inner .tag{color:var(--pink); font-size:18px;}
+  footer{ padding:64px 0 40px; border-top:2px solid var(--ink-2); }
+  .foot-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:36px; margin-bottom:44px; }
+  @media (max-width:760px){ .foot-grid{ grid-template-columns:1fr 1fr; } }
+  .foot-col h4{ font-family:'JetBrains Mono',monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:1px; color:var(--paper-faint); margin-bottom:14px; }
+  .foot-col ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .foot-col a{ color:var(--paper-dim); text-decoration:none; font-size:15.5px; }
+  .foot-col a:hover{ color:var(--pink); }
+  .foot-col p{ color:var(--paper-dim); font-size:15.5px; max-width:280px; }
+  .foot-bottom{ border-top:1px solid #262620; padding-top:24px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:center; }
+  .foot-bottom .tag{color:var(--pink); font-size:18px;}
   footer .small{color:#6a6a6a; font-size:14px;}
 
-  /* section dividers - spray drip */
-  .drip-divider{
-    height:26px;
-    background-image: radial-gradient(circle, var(--ink) 45%, transparent 46%);
-    background-size: 26px 26px;
-    background-position: 0 -13px;
-    background-repeat: repeat-x;
-  }
-  /* ---------- private access banner + card ---------- */
   .private-banner{
     background:repeating-linear-gradient(135deg, var(--pink), var(--pink) 14px, var(--ink) 14px, var(--ink) 28px);
-    color:#ffffff;
-    text-shadow:0 1px 3px rgba(0,0,0,0.6);
-    text-align:center;
-    padding:12px 20px;
-    font-family:'Anton', sans-serif;
-    font-size:14px;
-    letter-spacing:0.5px;
-    text-transform:uppercase;
+    color:#ffffff; text-shadow:0 1px 3px rgba(0,0,0,0.6); text-align:center; padding:12px 20px;
+    font-family:'Anton', sans-serif; font-size:14px; letter-spacing:0.5px; text-transform:uppercase;
   }
-  .private-banner span{
-    background:var(--ink);
-    color:#ffffff;
-    padding:4px 12px;
-    display:inline-block;
+  .private-banner span{ background:var(--ink); color:#ffffff; padding:4px 12px; display:inline-block; }
+  .private-banner a{ color:#ffffff; text-decoration:underline; }
+
+  .mist-dot{ position:fixed; z-index:150; border-radius:50%; pointer-events:none; background:var(--pink); opacity:0.5; }
+
+  /* ---------- back to top ---------- */
+  #backToTop{
+    position:fixed; right:24px; bottom:24px; z-index:80;
+    width:52px; height:52px; border-radius:50%; background:var(--pink); color:var(--ink);
+    border:2px solid var(--ink); font-family:'Anton',sans-serif; font-size:20px; cursor:pointer;
+    box-shadow:4px 4px 0 0 rgba(0,0,0,0.5);
+    opacity:0; pointer-events:none; transform:translateY(10px);
+    transition:opacity .2s ease, transform .2s ease;
   }
-  .private-banner a{
-    color:#ffffff;
-    text-decoration:underline;
-  }
+  #backToTop.show{ opacity:1; pointer-events:auto; transform:translateY(0); }
 </style>
 </head>
 <body>
 
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
 <div class="private-banner">
-  🔒 <span>Private bot</span> — DM VOQCL on Discord or <a href="https://discord.gg/3hkfHPwc2t" target="_blank" rel="noopener">join the server</a> to request access
+  <span>Invite-only</span> — Message VOQCL on Discord or <a href="https://discord.gg/3hkfHPwc2t" target="_blank" rel="noopener">join the support server</a> to request access
 </div>
-  
+
 <header class="nav">
   <div class="nav-inner">
     <div class="brand">
@@ -464,31 +520,63 @@
       <a href="#setup">Setup</a>
       <a href="#commands">Commands</a>
       <a href="#access">Access</a>
+      <a href="#faq">FAQ</a>
+      <a href="#changelog">Changelog</a>
     </nav>
     <div class="nav-cta">
-       <a class="pill" href="redirect.html">Contact</a>
-      <a class="pill accent" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Invite Bot</a>
+      <a class="pill sm" href="redirect.html">Contact</a>
+      <a class="pill accent sm" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Invite Bot</a>
     </div>
     <button id="navToggle" aria-label="Toggle menu">Menu</button>
   </div>
 </header>
 
+<main id="main">
+
 <!-- ============ HERO ============ -->
 <section class="hero">
   <div class="hero-inner">
     <div>
-      <span class="hero-eyebrow tag">// discord moderation, tagged up</span>
-      <h1>ysxj</h1>
-      <p class="lede">A moderation bot that runs the whole wall: bans, warnings, case files, a honeypot for bots, a gif-only lockdown, welcome tags, and a live GTA VI countdown. One bot, every server, zero spam.</p>
+      <div class="hero-kicker">
+        <span class="spray-tag-badge"><span class="dot"></span>// Discord moderation bot</span>
+      </div>
+      <div class="spray-title">
+        <span class="halo" aria-hidden="true"></span>
+        <h1>ysxj</h1>
+      </div>
+      <p class="lede">A complete moderation bot for Discord: bans and warnings, full case history, an automated spam trap, a media-lock mode, welcome messages, and a live GTA VI countdown. One bot, every server.</p>
+      <div class="badge-row">
+        <span class="stat-badge"><span class="swatch" style="background:var(--green)"></span>v2.4.0</span>
+        <span class="stat-badge">Uptime <strong>99.9%</strong></span>
+        <span class="stat-badge"><strong>60+</strong> commands</span>
+      </div>
       <div class="pill-row">
-        <a class="pill accent" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">
-          Add to Server
-        </a>
+        <a class="pill accent" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Add to Server</a>
         <a class="pill" href="#commands">Browse Commands</a>
       </div>
     </div>
     <div class="hero-art">
-      <img src="ysxjlogo.png" alt="">
+      <div class="discord-mock" role="img" aria-label="Example moderation case embed">
+        <div class="dm-titlebar">
+          <span class="dm-dot" style="background:#ff5f57"></span>
+          <span class="dm-dot" style="background:#febc2e"></span>
+          <span class="dm-dot" style="background:#28c840"></span>
+          <span class="terminal-head-label mono" style="margin-left:6px; font-family:'JetBrains Mono',monospace; font-size:12px; color:#7c8085;">#mod-logs</span>
+        </div>
+        <div class="dm-body">
+          <div class="dm-embed">
+            <div class="dm-embed-title">Case #482 — Warn</div>
+            <div class="dm-embed-sub">Member: Alex W.</div>
+            <div class="dm-fields">
+              <div><div class="dm-field-label">Reason</div><div class="dm-field-value">Rule 3 violation</div></div>
+              <div><div class="dm-field-label">Moderator</div><div class="dm-field-value">@staffmember</div></div>
+              <div><div class="dm-field-label">Prior warnings</div><div class="dm-field-value">1</div></div>
+              <div><div class="dm-field-label">Logged</div><div class="dm-field-value">just now</div></div>
+            </div>
+            <div class="dm-foot"><span class="av"></span> ysxj moderation log</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -497,134 +585,80 @@
   <div class="wrap">
     <div class="stat"><div class="num">60+</div><div class="label">Slash Commands</div></div>
     <div class="stat"><div class="num">∞</div><div class="label">Servers Supported</div></div>
-    <div class="stat"><div class="num">100%</div><div class="label">Actions Cased & Logged</div></div>
+    <div class="stat"><div class="num">100%</div><div class="label">Actions Cased &amp; Logged</div></div>
     <div class="stat"><div class="num">5min</div><div class="label">Countdown Refresh</div></div>
   </div>
 </div>
 
 <!-- ============ FEATURES ============ -->
-<section id="features">
+<section id="features" class="wall">
   <div class="wrap">
-    <div class="section-head">
-      <span class="tag">what it does</span>
-      <h2>Nine systems. One tag.</h2>
-      <p>Every feature runs per-server, stacks with hardcoded fallbacks, and gets saved to disk — nothing resets when the bot restarts.</p>
+    <div class="section-head reveal">
+      <span class="tag">Capabilities</span>
+      <h2>Nine systems, one bot</h2>
+      <p>Every feature is configured per server, backed by sensible defaults, and saved to disk — nothing resets when the bot restarts.</p>
     </div>
     <div class="feature-grid">
-
-      <div class="feature">
-        <span class="stencil-num">01</span>
-        <span class="icon">🛠️</span>
-        <h3>Core Moderation</h3>
-        <p>Kick, ban, softban, massban, tempban, timeout, warn, and private mod notes — every action requires the matching Discord permission.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">02</span>
-        <span class="icon">📁</span>
-        <h3>Case History</h3>
-        <p>Every mod action gets a numbered case automatically. Pull a member's full record with <code>/cases</code>, or one case by number with <code>/case</code>.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">03</span>
-        <span class="icon">🔑</span>
-        <h3>Access Control</h3>
-        <p>Each server picks which roles can use the bot at all — server owners always have access, even before a role is set.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">04</span>
-        <span class="icon">🍯</span>
-        <h3>Honeypot Trap</h3>
-        <p>Turn a channel into bait. Anyone who posts there is instantly soft-banned — one shot, no warning, and it's logged.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">05</span>
-        <span class="icon">🚫</span>
-        <h3>Media / Link Lock</h3>
-        <p>Flip a switch and only GIFs get through — everything else is deleted on sight. Exemptions stack across three separate allowlists.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">06</span>
-        <span class="icon">🌴</span>
-        <h3>GTA VI Countdown</h3>
-        <p>One message per channel, edited in place every five minutes — a live clock and a progress bar counting down to November 19, 2026.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">07</span>
-        <span class="icon">👋</span>
-        <h3>Welcome Tags</h3>
-        <p>New members get a custom embed with their avatar, the server banner, and a message you write yourself with live placeholders.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">08</span>
-        <span class="icon">📋</span>
-        <h3>Logging & Snipe</h3>
-        <p>Edits, deletions, and mod actions land in as many log channels as you want. Deleted images get reposted before Discord kills the link.</p>
-      </div>
-
-      <div class="feature">
-        <span class="stencil-num">09</span>
-        <span class="icon">🔧</span>
-        <h3>Utility & Info</h3>
-        <p>Server info, user lookups, avatars, ban lists, and a full dropdown <code>/help</code> menu for anyone who needs the map.</p>
-      </div>
-
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">01</span><span class="icon">🛠️</span><h3>Core Moderation</h3><p>Kick, ban, softban, massban, tempban, timeout, warn, and private mod notes — every action requires the matching Discord permission.</p><a class="jump" href="#cat-moderation">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">02</span><span class="icon">📁</span><h3>Case History</h3><p>Every mod action gets a numbered case automatically. Pull a member's full record with <code>/cases</code>, or one case by number with <code>/case</code>.</p><a class="jump" href="#cat-cases">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">03</span><span class="icon">🔑</span><h3>Access Control</h3><p>Each server picks which roles can use the bot at all — server owners always have access, even before a role is set.</p><a class="jump" href="#cat-access">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">04</span><span class="icon">🍯</span><h3>Honeypot Trap</h3><p>Designate a decoy channel that legitimate members never use. Any account that posts there is soft-banned automatically, and the action is logged.</p><a class="jump" href="#cat-honeypot">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">05</span><span class="icon">🚫</span><h3>Media / Link Lock</h3><p>Restrict a channel to GIFs only — every other message is removed automatically. Exemptions can be granted through three independent allowlists.</p><a class="jump" href="#cat-medialock">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">06</span><span class="icon">🌴</span><h3>GTA VI Countdown</h3><p>One message per channel, edited in place every five minutes — a live clock and a progress bar counting down to November 19, 2026.</p><a class="jump" href="#cat-gta6">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">07</span><span class="icon">👋</span><h3>Welcome Messages</h3><p>New members receive a custom embed with their avatar and the server banner, built from a message you write yourself using live placeholders.</p><a class="jump" href="#cat-welcome">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">08</span><span class="icon">📋</span><h3>Logging &amp; Snipe</h3><p>Edits, deletions, and mod actions land in as many log channels as you want. Deleted images get reposted before Discord kills the link.</p><a class="jump" href="#cat-logging">View commands →</a></div>
+      <div class="feature reveal"><span class="tape-corner"></span><span class="stencil-num">09</span><span class="icon">🔧</span><h3>Utility &amp; Info</h3><p>Server info, user lookups, avatars, ban lists, and a complete <code>/help</code> menu covering every command on this page.</p><a class="jump" href="#cat-utility">View commands →</a></div>
     </div>
   </div>
 </section>
 
-<div class="drip-divider"></div>
+<div class="torn" aria-hidden="true"><svg preserveAspectRatio="none" viewBox="0 0 1200 34"><polygon fill="#0b0c0a" points="0,34 0,10 40,18 90,4 140,20 190,6 240,16 300,2 350,18 410,8 470,22 520,6 580,18 630,4 690,16 740,2 800,18 860,6 920,20 980,4 1040,16 1100,2 1160,18 1200,8 1200,34"/></svg></div>
 
 <!-- ============ SETUP ============ -->
 <section id="setup">
   <div class="wrap">
-    <div class="section-head">
-      <span class="tag">get it running</span>
-      <h2>Up on the wall in four</h2>
-      <p>The bot is invisible in the member list by design — it's working the whole time, it just doesn't need to be seen doing it.</p>
+    <div class="section-head reveal">
+      <span class="tag">Getting started</span>
+      <h2>Set up in four steps</h2>
+      <p>The bot doesn't need to be visible to be effective — it runs quietly in the background from the moment it's invited.</p>
     </div>
     <div class="steps">
-      <div class="step">
-        <span class="step-tape">STEP 1</span>
-        <h3>Invite the bot</h3>
-        <p>Hit "Add to Server" up top. It asks for Administrator so every moderation action actually works — no partial permissions to debug later.</p>
+      <div class="step reveal"><div class="gauge"><span></span></div><h3>Invite the bot</h3><p>Hit "Add to Server" up top. It asks for Administrator so every moderation action actually works — no partial permissions to debug later.</p></div>
+      <div class="step reveal"><div class="gauge"><span></span></div><h3>Set an allowed role</h3><p>Run <code>/addallowedrole</code> and pick your mod/admin role. Until you do, only the server owner can run commands.</p></div>
+      <div class="step reveal"><div class="gauge"><span></span></div><h3>Wire up logging</h3><p>Add a channel with <code>/addmodlog</code> and <code>/addimagelog</code> so every case, edit, and deletion has somewhere to land.</p></div>
+      <div class="step reveal"><div class="gauge"><span></span></div><h3>Turn on what you need</h3><p>Welcome channels, a honeypot, the media lock, the GTA VI countdown — all optional, all one slash command away.</p></div>
+    </div>
+
+    <div class="terminal reveal">
+      <div class="terminal-head">
+        <div class="dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+        <span class="label">Quick setup sequence</span>
+        <button class="icon-btn" id="copySetup" type="button">Copy</button>
       </div>
-      <div class="step">
-        <span class="step-tape">STEP 2</span>
-        <h3>Set an allowed role</h3>
-        <p>Run <code>/addallowedrole</code> and pick your mod/admin role. Until you do, only the server owner can run commands.</p>
-      </div>
-      <div class="step">
-        <span class="step-tape">STEP 3</span>
-        <h3>Wire up logging</h3>
-        <p>Add a channel with <code>/addmodlog</code> and <code>/addimagelog</code> so every case, edit, and deletion has somewhere to land.</p>
-      </div>
-      <div class="step">
-        <span class="step-tape">STEP 4</span>
-        <h3>Turn on what you need</h3>
-        <p>Welcome channels, a honeypot, the media lock, the GTA VI countdown — all optional, all one slash command away.</p>
+      <div class="terminal-body" id="setupCmds">
+        <div class="line"><span class="comment">// grant your staff role access to the bot</span></div>
+        <div class="line"><span class="prompt">›</span>/addallowedrole role:@Moderators</div>
+        <div class="line"><span class="comment">// send mod actions and edits to a log channel</span></div>
+        <div class="line"><span class="prompt">›</span>/addmodlog channel:#mod-logs</div>
+        <div class="line"><span class="comment">// repost deleted images before Discord expires the link</span></div>
+        <div class="line"><span class="prompt">›</span>/addimagelog channel:#deleted-images</div>
       </div>
     </div>
   </div>
 </section>
 
-<div class="drip-divider"></div>
+<div class="torn" aria-hidden="true"><svg preserveAspectRatio="none" viewBox="0 0 1200 34"><polygon fill="#0b0c0a" points="0,34 0,10 40,18 90,4 140,20 190,6 240,16 300,2 350,18 410,8 470,22 520,6 580,18 630,4 690,16 740,2 800,18 860,6 920,20 980,4 1040,16 1100,2 1160,18 1200,8 1200,34"/></svg></div>
 
-<!-- ============ ACCESS / EXEMPTIONS EXPLAINER ============ -->
-<section id="access">
+<!-- ============ ACCESS / EXEMPTIONS ============ -->
+<section id="access" class="wall">
   <div class="wrap">
-    <div class="section-head">
-      <span class="tag">how permissions stack</span>
+    <div class="section-head reveal">
+      <span class="tag">Permissions</span>
       <h2>Nothing overrides, everything stacks</h2>
       <p>Server settings, hardcoded fallbacks, and text-file allowlists never fight each other — being on any one list is always enough.</p>
     </div>
-    <div class="callout">
+    <div class="callout reveal">
+      <span class="pin" aria-hidden="true"></span>
       <h4>Who's exempt from what</h4>
       <p>Command access, the media lock, and log/welcome/countdown channels are each controlled by up to three sources at once. Any single match is enough — nothing needs to agree with anything else:</p>
       <ul>
@@ -632,131 +666,137 @@
         <li><strong>Hardcoded fallback lists</strong> — built into the bot for its original servers, so they keep working with zero setup.</li>
         <li><strong>Text files next to the bot</strong> — edit a plain <code>.txt</code> file, one ID per line, and it's picked up on the next relevant event.</li>
       </ul>
-      <p>Not sure if someone's exempt from the media lock right now? <code>/checkmedialockexempt</code> tells you exactly which rule matched — no digging through console logs.</p>
+      <div class="hint">Not sure if someone's exempt from the media lock right now? <code>/checkmedialockexempt</code> tells you exactly which rule matched — no digging through console logs.</div>
+    </div>
+
+    <div class="matrix-wrap reveal">
+      <table class="matrix">
+        <caption>Exemption sources by system</caption>
+        <thead>
+          <tr><th>System</th><th>Slash commands</th><th>Hardcoded fallback</th><th>Text file</th><th>Check command</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Command access</th><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td><td><code>/listallowedroles</code></td></tr>
+          <tr><th scope="row">Media lock</th><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><code>/checkmedialockexempt</code></td></tr>
+          <tr><th scope="row">Mod log routing</th><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td><td><code>/checklogconfig</code></td></tr>
+          <tr><th scope="row">Welcome channels</th><td><span class="yes">✓</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><code>/listwelcomechannels</code></td></tr>
+          <tr><th scope="row">GTA VI channels</th><td><span class="yes">✓</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><code>/listgta6channels</code></td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
 
-<div class="drip-divider"></div>
+<div class="torn" aria-hidden="true"><svg preserveAspectRatio="none" viewBox="0 0 1200 34"><polygon fill="#0b0c0a" points="0,34 0,10 40,18 90,4 140,20 190,6 240,16 300,2 350,18 410,8 470,22 520,6 580,18 630,4 690,16 740,2 800,18 860,6 920,20 980,4 1040,16 1100,2 1160,18 1200,8 1200,34"/></svg></div>
 
 <!-- ============ COMMANDS ============ -->
 <section id="commands">
   <div class="wrap">
-    <div class="section-head">
-      <span class="tag">the full can rack</span>
+    <div class="section-head reveal">
+      <span class="tag">Reference</span>
       <h2>Every command</h2>
-      <p>Filter by category or search by name. Anything marked with a permission needs that Discord permission (or an allowed role) to run.</p>
+      <p>Search by name, or expand a category below. Commands marked with a permission require that Discord permission (or an allowed role) to run.</p>
     </div>
 
-    <div class="cmd-controls">
+    <div class="cmd-controls reveal">
       <div class="search-box">
         <input type="text" id="cmdSearch" placeholder="Search commands, e.g. 'ban', 'welcome', 'gif'…">
       </div>
     </div>
-    <div class="filter-row" id="filterRow">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="moderation">Moderation</button>
-      <button class="filter-btn" data-filter="cases">Cases</button>
-      <button class="filter-btn" data-filter="access">Access</button>
-      <button class="filter-btn" data-filter="honeypot">Honeypot</button>
-      <button class="filter-btn" data-filter="medialock">Media Lock</button>
-      <button class="filter-btn" data-filter="gta6">GTA VI</button>
-      <button class="filter-btn" data-filter="welcome">Welcome</button>
-      <button class="filter-btn" data-filter="channels">Channels &amp; Voice</button>
-      <button class="filter-btn" data-filter="logging">Logging &amp; Snipe</button>
-      <button class="filter-btn" data-filter="utility">Utility</button>
-    </div>
-
     <p class="cmd-count" id="cmdCount"></p>
 
-    <div class="cmd-grid" id="cmdGrid">
-      <!-- Moderation -->
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">kick</div><span class="cmd-perm">Kick Members</span><p>Kick a member out, with a reason logged to their case history.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">ban</div><span class="cmd-perm">Ban Members</span><p>Ban a member from the server, with a reason.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">unban</div><span class="cmd-perm">Ban Members</span><p>Unban a user by their raw Discord user ID.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">softban</div><span class="cmd-perm">Ban Members</span><p>Ban then immediately unban, purging their recent messages without an actual ban.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">massban</div><span class="cmd-perm">Ban Members</span><p>Ban a batch of user IDs at once, space or comma separated.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">tempban</div><span class="cmd-perm">Ban Members</span><p>Ban for a set number of minutes, then auto-unban with no follow-up needed.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">timeout</div><span class="cmd-perm">Moderate Members</span><p>Discord-native timeout for a set number of minutes.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">untimeout</div><span class="cmd-perm">Moderate Members</span><p>Remove an active timeout early.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">mute</div><span class="cmd-perm">Moderate Members</span><p>Timeout-based mute for a set duration, with a reason.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">unmute</div><span class="cmd-perm">Moderate Members</span><p>Remove an active mute.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">warn</div><span class="cmd-perm">Moderate Members</span><p>Log a warning against a member and DM them the reason.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">warnings</div><span class="cmd-perm">Moderate Members</span><p>View a member's full warning history.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">clearwarnings</div><span class="cmd-perm">Moderate Members</span><p>Wipe every warning on a member's record.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">note</div><span class="cmd-perm">Moderate Members</span><p>Add a private mod note — never shown to the member.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">notes</div><span class="cmd-perm">Moderate Members</span><p>View a member's private mod notes.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">clearnotes</div><span class="cmd-perm">Moderate Members</span><p>Clear all private notes on a member.</p></div>
-      <div class="cmd-card" data-cat="moderation"><div class="cmd-name">purge</div><span class="cmd-perm">Manage Messages</span><p>Bulk-delete 1–100 recent messages in the current channel.</p></div>
+    <div class="cmd-layout">
+      <nav class="cmd-sidebar reveal" aria-label="Command categories">
+        <div class="cmd-sidebar-title">On this page</div>
+        <ul id="sidebarList"></ul>
+      </nav>
+      <div id="flyerWall"></div>
+    </div>
+  </div>
+</section>
 
-      <!-- Cases -->
-      <div class="cmd-card" data-cat="cases"><div class="cmd-name">cases</div><span class="cmd-perm">Moderate Members</span><p>See a member's full moderation history, most recent first.</p></div>
-      <div class="cmd-card" data-cat="cases"><div class="cmd-name">case</div><span class="cmd-perm">Moderate Members</span><p>Pull up one specific case by its number.</p></div>
-      <div class="cmd-card" data-cat="cases"><div class="cmd-name">deletecase</div><span class="cmd-perm">Moderate Members</span><p>Remove a case that was logged by mistake.</p></div>
+<div class="torn" aria-hidden="true"><svg preserveAspectRatio="none" viewBox="0 0 1200 34"><polygon fill="#0b0c0a" points="0,34 0,10 40,18 90,4 140,20 190,6 240,16 300,2 350,18 410,8 470,22 520,6 580,18 630,4 690,16 740,2 800,18 860,6 920,20 980,4 1040,16 1100,2 1160,18 1200,8 1200,34"/></svg></div>
 
-      <!-- Access -->
-      <div class="cmd-card" data-cat="access"><div class="cmd-name">addallowedrole</div><span class="cmd-perm">Administrator</span><p>Grant a role permission to use every bot command in this server.</p></div>
-      <div class="cmd-card" data-cat="access"><div class="cmd-name">removeallowedrole</div><span class="cmd-perm">Administrator</span><p>Revoke a role's access.</p></div>
-      <div class="cmd-card" data-cat="access"><div class="cmd-name">listallowedroles</div><span class="cmd-perm">Administrator</span><p>Show every role currently allowed to use the bot here.</p></div>
+<!-- ============ FAQ ============ -->
+<section id="faq" class="wall">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Questions</span>
+      <h2>Frequently asked</h2>
+      <p>The details that come up most when a server first sets up ysxj.</p>
+    </div>
+    <div class="faq-list" id="faqList">
+      <div class="faq-item reveal">
+        <button class="faq-q" type="button">Does the bot really need Administrator? <span class="chevron">▾</span></button>
+        <div class="faq-a"><p>It needs the underlying permissions individual commands use — bans, timeouts, channel management, and role management. Administrator is the simplest way to grant all of them at once and avoid a command silently failing because one permission was missed.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" type="button">What happens if I remove the honeypot channel? <span class="chevron">▾</span></button>
+        <div class="faq-a"><p>Run <code>/removehoneypot</code> first — this disables the trap without touching the channel. The channel itself is never deleted automatically, so you're free to repurpose or remove it separately afterward.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" type="button">Can I use more than one mod log channel? <span class="chevron">▾</span></button>
+        <div class="faq-a"><p>Yes. Add as many as you want with <code>/addmodlog</code> — every case, edit, and deletion is posted to all of them. <code>/listmodlogs</code> shows the current list, and <code>/checklogconfig</code> shows exactly which channel a given event resolved to.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" type="button">How do text-file allowlists get updated? <span class="chevron">▾</span></button>
+        <div class="faq-a"><p>They're plain <code>.txt</code> files stored next to the bot, one Discord ID per line. Editing the file directly takes effect on the next relevant event — no restart required.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" type="button">What happens when a tempban expires? <span class="chevron">▾</span></button>
+        <div class="faq-a"><p>The bot automatically unbans the member when the timer runs out and logs the expiry as its own case entry, so the history stays complete without any follow-up command.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" type="button">Is the GTA VI countdown accurate across time zones? <span class="chevron">▾</span></button>
+        <div class="faq-a"><p>Yes — it counts down to a fixed UTC timestamp and Discord renders it in each viewer's local time zone automatically, the same way any Discord timestamp does.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <!-- Honeypot -->
-      <div class="cmd-card" data-cat="honeypot"><div class="cmd-name">sethoneypot</div><span class="cmd-perm">Administrator</span><p>Turn a channel into a trap — anyone who posts there is auto-softbanned.</p></div>
-      <div class="cmd-card" data-cat="honeypot"><div class="cmd-name">removehoneypot</div><span class="cmd-perm">Administrator</span><p>Turn the honeypot off. The channel itself is left untouched.</p></div>
-
-      <!-- Media Lock -->
-      <div class="cmd-card" data-cat="medialock"><div class="cmd-name">medialock</div><span class="cmd-perm">Manage Messages</span><p>Turn the gif-only lock on or off, server-wide.</p></div>
-      <div class="cmd-card" data-cat="medialock"><div class="cmd-name">medialockstatus</div><span class="cmd-perm">None</span><p>Check whether the media/link lock is currently on or off.</p></div>
-      <div class="cmd-card" data-cat="medialock"><div class="cmd-name">medialockallowuser</div><span class="cmd-perm">Manage Messages</span><p>Let one user post any media/links even while the lock is on.</p></div>
-      <div class="cmd-card" data-cat="medialock"><div class="cmd-name">medialockdisallowuser</div><span class="cmd-perm">Manage Messages</span><p>Remove a user from that per-server exemption list.</p></div>
-      <div class="cmd-card" data-cat="medialock"><div class="cmd-name">medialocklistusers</div><span class="cmd-perm">Manage Messages</span><p>Show everyone allowlisted for the media lock here.</p></div>
-      <div class="cmd-card" data-cat="medialock"><div class="cmd-name">checkmedialockexempt</div><span class="cmd-perm">Manage Messages</span><p>Check if a member is exempt right now, and exactly which rule matched.</p></div>
-
-      <!-- GTA6 -->
-      <div class="cmd-card" data-cat="gta6"><div class="cmd-name">gta6</div><span class="cmd-perm">None</span><p>Post a one-off countdown right now. Anyone can run it.</p></div>
-      <div class="cmd-card" data-cat="gta6"><div class="cmd-name">addgta6channel</div><span class="cmd-perm">Administrator</span><p>Add a channel that keeps a self-updating countdown, refreshed every 5 minutes.</p></div>
-      <div class="cmd-card" data-cat="gta6"><div class="cmd-name">removegta6channel</div><span class="cmd-perm">Administrator</span><p>Stop updating and remove the countdown message.</p></div>
-      <div class="cmd-card" data-cat="gta6"><div class="cmd-name">listgta6channels</div><span class="cmd-perm">Administrator</span><p>See which channels have an active countdown.</p></div>
-
-      <!-- Welcome -->
-      <div class="cmd-card" data-cat="welcome"><div class="cmd-name">addwelcomechannel</div><span class="cmd-perm">Administrator</span><p>Add a channel that gets a welcome embed for every new member.</p></div>
-      <div class="cmd-card" data-cat="welcome"><div class="cmd-name">removewelcomechannel</div><span class="cmd-perm">Administrator</span><p>Stop posting welcome embeds in a specific channel.</p></div>
-      <div class="cmd-card" data-cat="welcome"><div class="cmd-name">listwelcomechannels</div><span class="cmd-perm">Administrator</span><p>Show every channel currently configured for welcomes.</p></div>
-      <div class="cmd-card" data-cat="welcome"><div class="cmd-name">setwelcomemessage</div><span class="cmd-perm">Administrator</span><p>Customize the welcome text with <code>{member}</code>, <code>{server}</code>, and <code>{count}</code>.</p></div>
-      <div class="cmd-card" data-cat="welcome"><div class="cmd-name">testwelcome</div><span class="cmd-perm">Administrator</span><p>Preview the welcome embed as it'd look for you, no one needs to actually join.</p></div>
-
-      <!-- Channels & Voice -->
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">lock</div><span class="cmd-perm">Manage Channels</span><p>Lock a channel so @everyone can't send messages.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">unlock</div><span class="cmd-perm">Manage Channels</span><p>Unlock a channel again.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">slowmode</div><span class="cmd-perm">Manage Channels</span><p>Set a channel's slowmode delay, 0–21600 seconds.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">nuke</div><span class="cmd-perm">Manage Channels</span><p>Clone the channel and delete the original, wiping its history.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">addrole</div><span class="cmd-perm">Manage Roles</span><p>Add a role to a member.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">removerole</div><span class="cmd-perm">Manage Roles</span><p>Remove a role from a member.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">nickname</div><span class="cmd-perm">Manage Nicknames</span><p>Change a member's nickname.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">resetnickname</div><span class="cmd-perm">Manage Nicknames</span><p>Reset a nickname back to their username.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">voicekick</div><span class="cmd-perm">Move Members</span><p>Disconnect a member from their current voice channel.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">voicemute</div><span class="cmd-perm">Mute Members</span><p>Server-mute a member in voice channels.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">voiceunmute</div><span class="cmd-perm">Mute Members</span><p>Remove a member's voice server-mute.</p></div>
-      <div class="cmd-card" data-cat="channels"><div class="cmd-name">moveuser</div><span class="cmd-perm">Move Members</span><p>Move a member to a different voice channel.</p></div>
-
-      <!-- Logging -->
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">addmodlog</div><span class="cmd-perm">Administrator</span><p>Add a channel for mod actions, edits, and deletions. Add more than one.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">removemodlog</div><span class="cmd-perm">Administrator</span><p>Remove a channel from the mod log list.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">listmodlogs</div><span class="cmd-perm">Administrator</span><p>Show every channel currently receiving mod logs.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">addimagelog</div><span class="cmd-perm">Administrator</span><p>Add a channel that deleted images get reposted to.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">removeimagelog</div><span class="cmd-perm">Administrator</span><p>Remove a channel from the image log list.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">listimagelogs</div><span class="cmd-perm">Administrator</span><p>Show every channel currently receiving deleted images.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">checklogconfig</div><span class="cmd-perm">Administrator</span><p>See exactly which channels mod_log/image_log resolve to, and why.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">snipe</div><span class="cmd-perm">None</span><p>Show the last deleted message in this (or another) channel.</p></div>
-      <div class="cmd-card" data-cat="logging"><div class="cmd-name">editsnipe</div><span class="cmd-perm">None</span><p>Show the last edited message in this (or another) channel.</p></div>
-
-      <!-- Utility -->
-      <div class="cmd-card" data-cat="utility"><div class="cmd-name">ping</div><span class="cmd-perm">None</span><p>Check the bot is online and see its latency.</p></div>
-      <div class="cmd-card" data-cat="utility"><div class="cmd-name">modpanel</div><span class="cmd-perm">Moderate Members</span><p>Quick reference embed of the commands mods use day-to-day.</p></div>
-      <div class="cmd-card" data-cat="utility"><div class="cmd-name">userinfo</div><span class="cmd-perm">None</span><p>Show join date, roles, and account age for a member.</p></div>
-      <div class="cmd-card" data-cat="utility"><div class="cmd-name">serverinfo</div><span class="cmd-perm">None</span><p>Show owner, member count, channels, and roles for this server.</p></div>
-      <div class="cmd-card" data-cat="utility"><div class="cmd-name">avatar</div><span class="cmd-perm">None</span><p>Show a member's avatar full-size.</p></div>
-      <div class="cmd-card" data-cat="utility"><div class="cmd-name">banlist</div><span class="cmd-perm">Ban Members</span><p>List every currently banned user, with reasons where given.</p></div>
-      <div class="cmd-card" data-cat="utility"><div class="cmd-name">help</div><span class="cmd-perm">None</span><p>A full dropdown menu of every category on this page, in Discord.</p></div>
+<!-- ============ CHANGELOG ============ -->
+<section id="changelog">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Version history</span>
+      <h2>Changelog</h2>
+      <p>What's shipped recently. Run <code>/ping</code> in Discord to confirm which version your server is running.</p>
+    </div>
+    <div class="changelog reveal">
+      <div class="change-entry">
+        <div class="change-head"><span class="change-version">v2.4.0</span><span class="change-date">August 2026</span><span class="change-tag new">New</span></div>
+        <ul>
+          <li>Added <code>/checkmedialockexempt</code> to show exactly which rule exempts a member from the media lock.</li>
+          <li>Added <code>/checklogconfig</code> for inspecting resolved mod-log and image-log routing.</li>
+        </ul>
+      </div>
+      <div class="change-entry">
+        <div class="change-head"><span class="change-version">v2.3.0</span><span class="change-date">June 2026</span><span class="change-tag change">Changed</span></div>
+        <ul>
+          <li>Media lock exemptions now stack across slash-command, hardcoded, and text-file sources instead of using a single source of truth.</li>
+          <li>Welcome messages support a new <code>{count}</code> placeholder for the server's member count.</li>
+        </ul>
+      </div>
+      <div class="change-entry">
+        <div class="change-head"><span class="change-version">v2.2.0</span><span class="change-date">April 2026</span><span class="change-tag new">New</span></div>
+        <ul>
+          <li>Introduced the honeypot system: <code>/sethoneypot</code> and <code>/removehoneypot</code>.</li>
+          <li>Introduced <code>/editsnipe</code> alongside the existing <code>/snipe</code>.</li>
+        </ul>
+      </div>
+      <div class="change-entry">
+        <div class="change-head"><span class="change-version">v2.1.0</span><span class="change-date">February 2026</span><span class="change-tag fix">Fix</span></div>
+        <ul>
+          <li>Tempbans now correctly log an expiry case when the auto-unban runs.</li>
+          <li>Fixed a case where deleted images posted to an image log after the source message link had already expired.</li>
+        </ul>
+      </div>
+      <div class="change-entry">
+        <div class="change-head"><span class="change-version">v2.0.0</span><span class="change-date">December 2025</span><span class="change-tag new">New</span></div>
+        <ul>
+          <li>Initial public release: core moderation, case history, access control, logging, and the GTA VI countdown.</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -764,8 +804,8 @@
 <!-- ============ CTA ============ -->
 <div class="cta-band">
   <div class="wrap">
-    <h2>Put it up on your wall.</h2>
-    <p>One invite, every server. Admin permission, an owner-proof access system, and a full case history from message one.</p>
+    <h2>Ready to add it?</h2>
+    <p>One invite covers every feature. Administrator permission, an owner-proof access system, and a full case history from day one.</p>
     <div class="pill-row">
       <a class="pill accent" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Invite ysxj</a>
       <a class="pill" href="#commands">See all commands</a>
@@ -773,17 +813,283 @@
   </div>
 </div>
 
+</main>
+
 <footer>
-  <div class="wrap foot-inner">
-    <div>
-      <span class="tag">ysxj</span> — built by VOQCL
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col">
+        <h4>ysxj</h4>
+        <p>A Discord moderation bot with case history, access control, and automated spam defenses, built and maintained by VOQCL.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#setup">Setup</a></li>
+          <li><a href="#commands">Commands</a></li>
+          <li><a href="#changelog">Changelog</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#access">Permissions</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="redirect.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://discord.gg/3hkfHPwc2t" target="_blank" rel="noopener">Support server</a></li>
+          <li><a href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Invite the bot</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="small">Run <code>/help</code> in Discord any time for this same list, without leaving the app.</div>
+    <div class="foot-bottom">
+      <div><span class="tag">ysxj</span> — built by VOQCL</div>
+      <div class="small">Run <code>/help</code> in Discord any time for this same list, without leaving the app.</div>
+    </div>
   </div>
 </footer>
 
+<button id="backToTop" aria-label="Back to top" type="button">↑</button>
+
 <script>
-  // Mobile nav toggle: reuse the links list in a simple slide-down
+  // ---------- command data ----------
+  const CATEGORIES = [
+    { key:"moderation", label:"Moderation", desc:"Kicks, bans, timeouts, warnings and notes.", cmds:[
+      ["kick","Kick Members","Kick a member out, with a reason logged to their case history.","/kick member:<user> reason:<text>","/kick member:@Alex reason:Spamming links"],
+      ["ban","Ban Members","Ban a member from the server, with a reason.","/ban member:<user> reason:<text>","/ban member:@Alex reason:Repeated harassment"],
+      ["unban","Ban Members","Unban a user by their raw Discord user ID.","/unban user_id:<id>","/unban user_id:482910233871"],
+      ["softban","Ban Members","Ban then immediately unban, purging their recent messages without an actual ban.","/softban member:<user> reason:<text>","/softban member:@Alex reason:Message purge"],
+      ["massban","Ban Members","Ban a batch of user IDs at once, space or comma separated.","/massban user_ids:<id id id…>","/massban user_ids:482910233871 501823741002"],
+      ["tempban","Ban Members","Ban for a set number of minutes, then auto-unban with no follow-up needed.","/tempban member:<user> minutes:<n> reason:<text>","/tempban member:@Alex minutes:1440 reason:Cooldown"],
+      ["timeout","Moderate Members","Discord-native timeout for a set number of minutes.","/timeout member:<user> minutes:<n> reason:<text>","/timeout member:@Alex minutes:10 reason:Cooling off"],
+      ["untimeout","Moderate Members","Remove an active timeout early.","/untimeout member:<user>","/untimeout member:@Alex"],
+      ["mute","Moderate Members","Timeout-based mute for a set duration, with a reason.","/mute member:<user> minutes:<n> reason:<text>","/mute member:@Alex minutes:30 reason:Off-topic"],
+      ["unmute","Moderate Members","Remove an active mute.","/unmute member:<user>","/unmute member:@Alex"],
+      ["warn","Moderate Members","Log a warning against a member and DM them the reason.","/warn member:<user> reason:<text>","/warn member:@Alex reason:Rule 3 violation"],
+      ["warnings","Moderate Members","View a member's full warning history.","/warnings member:<user>","/warnings member:@Alex"],
+      ["clearwarnings","Moderate Members","Wipe every warning on a member's record.","/clearwarnings member:<user>","/clearwarnings member:@Alex"],
+      ["note","Moderate Members","Add a private mod note — never shown to the member.","/note member:<user> text:<text>","/note member:@Alex text:Escalated twice this month"],
+      ["notes","Moderate Members","View a member's private mod notes.","/notes member:<user>","/notes member:@Alex"],
+      ["clearnotes","Moderate Members","Clear all private notes on a member.","/clearnotes member:<user>","/clearnotes member:@Alex"],
+      ["purge","Manage Messages","Bulk-delete 1–100 recent messages in the current channel.","/purge amount:<1-100>","/purge amount:50"],
+    ]},
+    { key:"cases", label:"Cases", desc:"Every action, numbered and pullable.", cmds:[
+      ["cases","Moderate Members","See a member's full moderation history, most recent first.","/cases member:<user>","/cases member:@Alex"],
+      ["case","Moderate Members","Pull up one specific case by its number.","/case number:<id>","/case number:482"],
+      ["deletecase","Moderate Members","Remove a case that was logged by mistake.","/deletecase number:<id>","/deletecase number:482"],
+    ]},
+    { key:"access", label:"Access", desc:"Who can run the bot at all.", cmds:[
+      ["addallowedrole","Administrator","Grant a role permission to use every bot command in this server.","/addallowedrole role:<role>","/addallowedrole role:@Moderators"],
+      ["removeallowedrole","Administrator","Revoke a role's access.","/removeallowedrole role:<role>","/removeallowedrole role:@Moderators"],
+      ["listallowedroles","Administrator","Show every role currently allowed to use the bot here.","/listallowedroles","/listallowedroles"],
+    ]},
+    { key:"honeypot", label:"Honeypot", desc:"A decoy channel that catches spam automatically.", cmds:[
+      ["sethoneypot","Administrator","Turn a channel into a trap — anyone who posts there is auto-softbanned.","/sethoneypot channel:<channel>","/sethoneypot channel:#free-nitro"],
+      ["removehoneypot","Administrator","Turn the honeypot off. The channel itself is left untouched.","/removehoneypot","/removehoneypot"],
+    ]},
+    { key:"medialock", label:"Media Lock", desc:"Gif-only lockdown and its exemptions.", cmds:[
+      ["medialock","Manage Messages","Turn the gif-only lock on or off, server-wide.","/medialock state:<on|off>","/medialock state:on"],
+      ["medialockstatus","None","Check whether the media/link lock is currently on or off.","/medialockstatus","/medialockstatus"],
+      ["medialockallowuser","Manage Messages","Let one user post any media/links even while the lock is on.","/medialockallowuser user:<user>","/medialockallowuser user:@Alex"],
+      ["medialockdisallowuser","Manage Messages","Remove a user from that per-server exemption list.","/medialockdisallowuser user:<user>","/medialockdisallowuser user:@Alex"],
+      ["medialocklistusers","Manage Messages","Show everyone allowlisted for the media lock here.","/medialocklistusers","/medialocklistusers"],
+      ["checkmedialockexempt","Manage Messages","Check if a member is exempt right now, and exactly which rule matched.","/checkmedialockexempt member:<user>","/checkmedialockexempt member:@Alex"],
+    ]},
+    { key:"gta6", label:"GTA VI", desc:"The countdown, self-updating.", cmds:[
+      ["gta6","None","Post a one-off countdown right now. Anyone can run it.","/gta6","/gta6"],
+      ["addgta6channel","Administrator","Add a channel that keeps a self-updating countdown, refreshed every 5 minutes.","/addgta6channel channel:<channel>","/addgta6channel channel:#countdown"],
+      ["removegta6channel","Administrator","Stop updating and remove the countdown message.","/removegta6channel channel:<channel>","/removegta6channel channel:#countdown"],
+      ["listgta6channels","Administrator","See which channels have an active countdown.","/listgta6channels","/listgta6channels"],
+    ]},
+    { key:"welcome", label:"Welcome", desc:"Greet new members automatically.", cmds:[
+      ["addwelcomechannel","Administrator","Add a channel that gets a welcome embed for every new member.","/addwelcomechannel channel:<channel>","/addwelcomechannel channel:#welcome"],
+      ["removewelcomechannel","Administrator","Stop posting welcome embeds in a specific channel.","/removewelcomechannel channel:<channel>","/removewelcomechannel channel:#welcome"],
+      ["listwelcomechannels","Administrator","Show every channel currently configured for welcomes.","/listwelcomechannels","/listwelcomechannels"],
+      ["setwelcomemessage","Administrator","Customize the welcome text with {member}, {server}, and {count}.","/setwelcomemessage text:<text>","/setwelcomemessage text:Welcome {member} to {server}! You're member #{count}."],
+      ["testwelcome","Administrator","Preview the welcome embed as it'd look for you, no one needs to actually join.","/testwelcome","/testwelcome"],
+    ]},
+    { key:"channels", label:"Channels & Voice", desc:"Locks, slowmode, roles, and voice control.", cmds:[
+      ["lock","Manage Channels","Lock a channel so @everyone can't send messages.","/lock channel:<channel>","/lock channel:#general"],
+      ["unlock","Manage Channels","Unlock a channel again.","/unlock channel:<channel>","/unlock channel:#general"],
+      ["slowmode","Manage Channels","Set a channel's slowmode delay, 0–21600 seconds.","/slowmode seconds:<0-21600> channel:<channel>","/slowmode seconds:30 channel:#general"],
+      ["nuke","Manage Channels","Clone the channel and delete the original, wiping its history.","/nuke channel:<channel>","/nuke channel:#general"],
+      ["addrole","Manage Roles","Add a role to a member.","/addrole member:<user> role:<role>","/addrole member:@Alex role:@Verified"],
+      ["removerole","Manage Roles","Remove a role from a member.","/removerole member:<user> role:<role>","/removerole member:@Alex role:@Verified"],
+      ["nickname","Manage Nicknames","Change a member's nickname.","/nickname member:<user> name:<text>","/nickname member:@Alex name:Alex W."],
+      ["resetnickname","Manage Nicknames","Reset a nickname back to their username.","/resetnickname member:<user>","/resetnickname member:@Alex"],
+      ["voicekick","Move Members","Disconnect a member from their current voice channel.","/voicekick member:<user>","/voicekick member:@Alex"],
+      ["voicemute","Mute Members","Server-mute a member in voice channels.","/voicemute member:<user>","/voicemute member:@Alex"],
+      ["voiceunmute","Mute Members","Remove a member's voice server-mute.","/voiceunmute member:<user>","/voiceunmute member:@Alex"],
+      ["moveuser","Move Members","Move a member to a different voice channel.","/moveuser member:<user> channel:<voice channel>","/moveuser member:@Alex channel:General Voice"],
+    ]},
+    { key:"logging", label:"Logging & Snipe", desc:"Where actions and deletions land.", cmds:[
+      ["addmodlog","Administrator","Add a channel for mod actions, edits, and deletions. Add more than one.","/addmodlog channel:<channel>","/addmodlog channel:#mod-logs"],
+      ["removemodlog","Administrator","Remove a channel from the mod log list.","/removemodlog channel:<channel>","/removemodlog channel:#mod-logs"],
+      ["listmodlogs","Administrator","Show every channel currently receiving mod logs.","/listmodlogs","/listmodlogs"],
+      ["addimagelog","Administrator","Add a channel that deleted images get reposted to.","/addimagelog channel:<channel>","/addimagelog channel:#deleted-images"],
+      ["removeimagelog","Administrator","Remove a channel from the image log list.","/removeimagelog channel:<channel>","/removeimagelog channel:#deleted-images"],
+      ["listimagelogs","Administrator","Show every channel currently receiving deleted images.","/listimagelogs","/listimagelogs"],
+      ["checklogconfig","Administrator","See exactly which channels mod_log/image_log resolve to, and why.","/checklogconfig","/checklogconfig"],
+      ["snipe","None","Show the last deleted message in this (or another) channel.","/snipe channel:<channel optional>","/snipe channel:#general"],
+      ["editsnipe","None","Show the last edited message in this (or another) channel.","/editsnipe channel:<channel optional>","/editsnipe channel:#general"],
+    ]},
+    { key:"utility", label:"Utility", desc:"Info, lookups, and the help menu.", cmds:[
+      ["ping","None","Check the bot is online and see its latency.","/ping","/ping"],
+      ["modpanel","Moderate Members","Quick reference embed of the commands mods use day-to-day.","/modpanel","/modpanel"],
+      ["userinfo","None","Show join date, roles, and account age for a member.","/userinfo member:<user>","/userinfo member:@Alex"],
+      ["serverinfo","None","Show owner, member count, channels, and roles for this server.","/serverinfo","/serverinfo"],
+      ["avatar","None","Show a member's avatar full-size.","/avatar member:<user>","/avatar member:@Alex"],
+      ["banlist","Ban Members","List every currently banned user, with reasons where given.","/banlist","/banlist"],
+      ["help","None","A full dropdown menu of every category on this page, in Discord.","/help","/help"],
+    ]},
+  ];
+
+  const wall = document.getElementById('flyerWall');
+  const sidebarList = document.getElementById('sidebarList');
+  const totalCmds = CATEGORIES.reduce((n,c)=>n+c.cmds.length,0);
+
+  CATEGORIES.forEach((cat) => {
+    // sidebar entry
+    const li = document.createElement('li');
+    li.innerHTML = `<button data-target="cat-${cat.key}">${cat.label} <span class="n">${cat.cmds.length}</span></button>`;
+    sidebarList.appendChild(li);
+
+    // flyer
+    const flyer = document.createElement('div');
+    flyer.className = 'flyer';
+    flyer.id = `cat-${cat.key}`;
+    flyer.dataset.cat = cat.key;
+    flyer.innerHTML = `
+      <button class="flyer-head" aria-expanded="false">
+        <div>
+          <h3>${cat.label}<span class="badge">${cat.cmds.length}</span></h3>
+          <span class="cat-desc">${cat.desc}</span>
+        </div>
+        <span class="chevron">▾</span>
+      </button>
+      <div class="flyer-body">
+        <div class="flyer-body-inner">
+          ${cat.cmds.map(([name,perm,desc,usage,example]) => `
+            <div class="cmd-card" data-name="${name}" data-text="${(name+' '+perm+' '+desc).toLowerCase()}">
+              <div class="cmd-top">
+                <div class="cmd-name">${name}</div>
+                <button class="icon-btn copy-cmd" type="button" data-copy="${usage.replace(/"/g,'&quot;')}">Copy</button>
+              </div>
+              <span class="cmd-perm">${perm}</span>
+              <p class="desc">${desc}</p>
+              <div class="cmd-usage">${usage}</div>
+              <div class="cmd-example"><b>Example:</b> ${example}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    wall.appendChild(flyer);
+
+    flyer.querySelector('.flyer-head').addEventListener('click', () => {
+      const isOpen = flyer.classList.contains('open');
+      flyer.classList.toggle('open', !isOpen);
+      flyer.querySelector('.flyer-head').setAttribute('aria-expanded', String(!isOpen));
+    });
+  });
+
+  // sidebar click -> scroll + open
+  sidebarList.querySelectorAll('button[data-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const flyer = document.getElementById(btn.dataset.target);
+      if(!flyer) return;
+      flyer.classList.add('open');
+      flyer.querySelector('.flyer-head').setAttribute('aria-expanded','true');
+      flyer.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
+
+  // copy-to-clipboard on command cards
+  wall.addEventListener('click', (e) => {
+    const btn = e.target.closest('.copy-cmd');
+    if(!btn) return;
+    const text = btn.dataset.copy;
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(text).then(() => flashCopied(btn));
+    } else {
+      flashCopied(btn);
+    }
+  });
+  function flashCopied(btn){
+    const original = btn.textContent;
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1200);
+  }
+
+  // copy setup terminal block
+  document.getElementById('copySetup').addEventListener('click', (e) => {
+    const lines = Array.from(document.querySelectorAll('#setupCmds .line'))
+      .map(l => l.textContent.replace(/^›/,'').trim())
+      .filter(t => !t.startsWith('//'));
+    const text = lines.join('\n');
+    const btn = e.currentTarget;
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(text).then(() => flashCopied(btn));
+    } else {
+      flashCopied(btn);
+    }
+  });
+
+  // search + filter
+  const allFlyers = Array.from(document.querySelectorAll('.flyer'));
+  const searchInput = document.getElementById('cmdSearch');
+  const cmdCount = document.getElementById('cmdCount');
+
+  function applySearch(){
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    allFlyers.forEach(flyer => {
+      let flyerHasMatch = false;
+      flyer.querySelectorAll('.cmd-card').forEach(card => {
+        const show = q === '' || card.dataset.text.includes(q);
+        card.dataset.hidden = show ? 'false' : 'true';
+        if(show){ visible++; flyerHasMatch = true; }
+      });
+      flyer.dataset.hidden = flyerHasMatch ? 'false' : 'true';
+      if(q !== '' && flyerHasMatch){ flyer.classList.add('open'); }
+      if(q === ''){ flyer.classList.remove('open'); }
+    });
+    cmdCount.innerHTML = q === ''
+      ? `<strong>${totalCmds}</strong> commands across <strong>${CATEGORIES.length}</strong> categories — click a category to expand it.`
+      : `Showing <strong>${visible}</strong> of ${totalCmds} commands`;
+  }
+  searchInput.addEventListener('input', applySearch);
+  applySearch();
+
+  // sidebar scrollspy
+  if('IntersectionObserver' in window){
+    const sidebarBtns = Array.from(sidebarList.querySelectorAll('button[data-target]'));
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const btn = sidebarBtns.find(b => b.dataset.target === entry.target.id);
+        if(!btn) return;
+        if(entry.isIntersecting){
+          sidebarBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+    allFlyers.forEach(f => spy.observe(f));
+  }
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item .faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const item = q.closest('.faq-item');
+      item.classList.toggle('open');
+    });
+  });
+
+  // ---------- nav toggle ----------
   const navToggle = document.getElementById('navToggle');
   const navLinks = document.querySelector('nav.links');
   navToggle.addEventListener('click', () => {
@@ -794,45 +1100,66 @@
     navLinks.style.top = '64px';
     navLinks.style.left = '0';
     navLinks.style.right = '0';
-    navLinks.style.background = '#0a0a0a';
+    navLinks.style.background = '#0b0c0a';
     navLinks.style.padding = '18px 28px';
     navLinks.style.borderBottom = '2px solid #ff2f92';
     navLinks.style.gap = '18px';
   });
 
-  // Command filter + search
-  const cards = Array.from(document.querySelectorAll('.cmd-card'));
-  const filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
-  const searchInput = document.getElementById('cmdSearch');
-  const cmdCount = document.getElementById('cmdCount');
-  let activeFilter = 'all';
-
-  function applyFilters(){
-    const q = searchInput.value.trim().toLowerCase();
-    let visible = 0;
-    cards.forEach(card => {
-      const cat = card.dataset.cat;
-      const text = card.textContent.toLowerCase();
-      const matchesFilter = activeFilter === 'all' || cat === activeFilter;
-      const matchesSearch = q === '' || text.includes(q);
-      const show = matchesFilter && matchesSearch;
-      card.dataset.hidden = show ? 'false' : 'true';
-      if(show) visible++;
-    });
-    cmdCount.textContent = `Showing ${visible} of ${cards.length} commands`;
+  // ---------- scroll reveal ----------
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduceMotion && 'IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold:0.12 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
   }
 
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeFilter = btn.dataset.filter;
-      applyFilters();
-    });
-  });
+  // ---------- hero spray-spatter dots ----------
+  if(!reduceMotion){
+    const spray = document.querySelector('.spray-title');
+    for(let i=0;i<10;i++){
+      const d = document.createElement('span');
+      d.className = 'spray-dot';
+      const size = 3 + Math.random()*6;
+      d.style.width = d.style.height = size+'px';
+      d.style.left = (Math.random()*100)+'%';
+      d.style.top = (Math.random()*100)+'%';
+      d.style.animationDelay = (0.9 + Math.random()*0.6)+'s';
+      spray.appendChild(d);
+    }
+  }
 
-  searchInput.addEventListener('input', applyFilters);
-  applyFilters();
+  // ---------- spray-mist cursor trail ----------
+  if(!reduceMotion && window.matchMedia('(hover: hover)').matches){
+    let last = 0;
+    window.addEventListener('pointermove', (e) => {
+      const now = Date.now();
+      if(now - last < 40) return;
+      last = now;
+      const dot = document.createElement('div');
+      dot.className = 'mist-dot';
+      const size = 3 + Math.random()*5;
+      dot.style.width = dot.style.height = size+'px';
+      dot.style.left = (e.clientX - size/2)+'px';
+      dot.style.top = (e.clientY - size/2)+'px';
+      dot.style.background = Math.random() > 0.7 ? 'var(--yellow)' : 'var(--pink)';
+      document.body.appendChild(dot);
+      dot.animate(
+        [{ opacity:0.5, transform:'scale(1)' }, { opacity:0, transform:`scale(${1+Math.random()*2}) translateY(${-10-Math.random()*14}px)` }],
+        { duration:600+Math.random()*300, easing:'ease-out' }
+      ).onfinish = () => dot.remove();
+    });
+  }
+
+  // ---------- back to top ----------
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('show', window.scrollY > 800);
+  });
+  backToTop.addEventListener('click', () => window.scrollTo({ top:0, behavior: reduceMotion ? 'auto' : 'smooth' }));
 </script>
 
 </body>
