@@ -97,8 +97,8 @@
     border:2px solid var(--line-strong); border-radius:999px;
   }
   .brand{ display:flex; align-items:center; gap:10px; font-family:'Fredoka', sans-serif; font-size:21px; font-weight:600; }
-  .brand .dot-logo{ width:32px; height:32px; border-radius:50%; background:var(--paper); display:flex; align-items:center; justify-content:center; }
-  .brand .dot-logo span{ width:10px; height:10px; background:var(--ink); border-radius:50%; }
+  .brand .dot-logo{ width:32px; height:32px; border-radius:50%; background:var(--ink-3); border:1.5px solid var(--line-strong); display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; }
+  .brand .dot-logo img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
   nav.links{display:flex; gap:4px;}
   nav.links a{
     text-decoration:none; font-size:15px; font-weight:700; font-family:'Fredoka';
@@ -437,7 +437,7 @@
 <header class="nav">
   <div class="nav-inner">
     <div class="brand">
-      <span class="dot-logo"><span></span></span>
+      <span class="dot-logo"><img src="ysxjlogo.png" alt="ysxj logo"></span>
       <span>ysxj</span>
     </div>
     <nav class="links">
@@ -476,7 +476,7 @@
       </div>
     </div>
     <div class="hero-art">
-      <div class="discord-mock" role="img" aria-label="Example mod log message posted by ysxj">
+      <span class="discord-mock"><img src="ysxjlogo.png" alt="ysxj logo"></span>
         <div class="discord-row">
           <div class="discord-avatar"><span>ys</span></div>
           <div class="discord-body">
@@ -495,17 +495,17 @@
                   </div>
                   <div class="embed-field">
                     <span class="field-label">Moderator</span>
-                    <span class="field-value">ysxj</span>
+                    <span class="field-value">Auto · Honeypot</span>
                   </div>
                 </div>
                 <div class="embed-fields">
                   <div class="embed-field">
                     <span class="field-label">Member</span>
-                    <span class="field-value">@voqcl</span>
+                    <span class="field-value">@totally.legit.acc</span>
                   </div>
                   <div class="embed-field">
                     <span class="field-label">Logged to</span>
-                    <span class="field-value">#mod-logs</span>
+                    <span class="field-value">#mod-logs +1</span>
                   </div>
                 </div>
                 <div class="embed-footer">ysxj • Mod Logs • Today at 7:41 PM</div>
