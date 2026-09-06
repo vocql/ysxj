@@ -468,9 +468,9 @@
       <h1>ysxj</h1>
       <p class="lede">A complete moderation bot for Discord: bans and warnings, full case history, an automated spam trap, a media-lock mode, and welcome messages. One bot, every server.</p>
       <div class="badge-row">
-        <span class="stat-badge"><strong>v2.4.0</strong></span>
+        <span class="stat-badge"><strong>v2.5.0</strong></span>
         <span class="stat-badge">Uptime <strong>99.9%</strong></span>
-        <span class="stat-badge"><strong>60+</strong> commands</span>
+        <span class="stat-badge"><strong>70+</strong> commands</span>
       </div>
       <div class="pill-row">
         <a class="pill solid" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Add to Server</a>
@@ -499,7 +499,7 @@
                   </div>
                   <div class="embed-field">
                     <span class="field-label">Moderator</span>
-                    <span class="field-value">ysxj</span>
+                    <span class="field-value">ysxxj</span>
                   </div>
                 </div>
                 <div class="embed-fields">
@@ -509,7 +509,7 @@
                   </div>
                   <div class="embed-field">
                     <span class="field-label">Logged to</span>
-                    <span class="field-value">#mod-logs</span>
+                    <span class="field-value">#ysxj-logs</span>
                   </div>
                 </div>
                 <div class="embed-footer">ysxj • Mod Logs • Today at 7:41 PM</div>
@@ -525,7 +525,7 @@
 
 <div class="stat-strip">
   <div class="wrap">
-    <div class="stat"><div class="num">60+</div><div class="label">Slash Commands</div></div>
+    <div class="stat"><div class="num">70+</div><div class="label">Slash Commands</div></div>
     <div class="stat"><div class="num">∞</div><div class="label">Servers Supported</div></div>
     <div class="stat"><div class="num">100%</div><div class="label">Actions Cased &amp; Logged</div></div>
     <div class="stat"><div class="num">3</div><div class="label">Exemption Sources</div></div>
@@ -537,7 +537,7 @@
   <div class="wrap">
     <div class="section-head">
       <span class="eyebrow">Capabilities</span>
-      <h2>Nine systems, one bot</h2>
+      <h2>Eleven systems, one bot</h2>
       <p>Every feature is configured per server, backed by sensible defaults, and saved to disk — nothing resets when the bot restarts.</p>
     </div>
     <div class="feature-grid">
@@ -576,6 +576,14 @@
       <div class="feature alt">
         <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2.5" x2="12" y2="5.5"/><line x1="12" y1="18.5" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5.5" y2="12"/><line x1="18.5" y1="12" x2="21.5" y2="12"/><line x1="5.4" y1="5.4" x2="7.5" y2="7.5"/><line x1="16.5" y1="16.5" x2="18.6" y2="18.6"/><line x1="5.4" y1="18.6" x2="7.5" y2="16.5"/><line x1="16.5" y1="7.5" x2="18.6" y2="5.4"/></svg></span>
         <h3>Utility &amp; Info</h3><p>Server info, user lookups, avatars, ban lists, and a complete <code>/help</code> menu covering every command on this page.</p><a class="jump" href="#cat-utility">View commands →</a>
+      </div>
+      <div class="feature">
+        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M10.5 9.5 15 12 10.5 14.5Z" fill="currentColor" stroke="none"/></svg></span>
+        <h3>Clip Competition</h3><p>Members submit clips, mods Accept or Deny them from an optional review queue, and approved clips get ✅/❌ voting with a live leaderboard.</p><a class="jump" href="#cat-clip">View commands →</a>
+      </div>
+      <div class="feature alt">
+        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 13.6 8.8 18.5 9.1 14.7 12.1 16 17 12 14.1 8 17 9.3 12.1 5.5 9.1 10.4 8.8Z"/></svg></span>
+        <h3>YouTube Notifications</h3><p>Watches a YouTube channel and posts an announcement the moment it goes live, schedules a stream, or uploads a new video — on its own polling loop.</p><a class="jump" href="#cat-youtube">View commands →</a>
       </div>
     </div>
   </div>
@@ -702,6 +710,39 @@
       <div class="faq-item">
         <button class="faq-q" type="button">Can I run more than one countdown at once? <span class="chevron">▾</span></button>
         <div class="faq-a"><p>Yes — add as many countdown channels as you like, each with its own target date. <code>/listgta6channels</code> shows every one currently running.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHANGELOG ============ -->
+<section id="changelog">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">History</span>
+      <h2>Changelog</h2>
+      <p>What's shipped recently.</p>
+    </div>
+    <div class="changelog">
+      <div class="change-entry">
+        <div class="change-head">
+          <span class="change-version">v2.5.0</span>
+          <span class="change-date">September 5, 2026</span>
+        </div>
+        <ul>
+          <li>Added YouTube notifications — announces new uploads, scheduled streams, and going-live events to a channel you configure<span class="change-tag">New</span></li>
+          <li><code>/youtubestatus</code> and <code>/checkyoutube</code> added to the command reference</li>
+        </ul>
+      </div>
+      <div class="change-entry">
+        <div class="change-head">
+          <span class="change-version">v2.4.0</span>
+          <span class="change-date">August 31, 2026</span>
+        </div>
+        <ul>
+          <li>Added the Clip Competition system — submissions, an optional Accept/Deny review queue, ✅/❌ voting, and a live leaderboard<span class="change-tag">New</span></li>
+          <li><code>/startcompetition</code>, <code>/endcompetition</code>, <code>/leaderboard</code>, and <code>/reviewqueue</code> added to the command reference</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -844,6 +885,16 @@
       ["checklogconfig","Administrator","See exactly which channels mod_log/image_log resolve to, and why.","/checklogconfig","/checklogconfig"],
       ["snipe","None","Show the last deleted message in this (or another) channel.","/snipe channel:<channel optional>","/snipe channel:#general"],
       ["editsnipe","None","Show the last edited message in this (or another) channel.","/editsnipe channel:<channel optional>","/editsnipe channel:#general"],
+    ]},
+    { key:"clip", label:"Clip Competition", desc:"Submit, review, vote, and crown a winner.", cmds:[
+      ["startcompetition","Manage Server","Open submissions — clears any leftover clips/review queue from last time and announces the start.","/startcompetition","/startcompetition"],
+      ["endcompetition","Manage Server","Close submissions, post final standings, and announce + repost the winning clip.","/endcompetition","/endcompetition"],
+      ["leaderboard","None","Show live ✅/❌ standings for every tracked clip, anytime.","/leaderboard","/leaderboard"],
+      ["reviewqueue","Manage Server","See every clip currently waiting for a mod to Accept or Deny.","/reviewqueue","/reviewqueue"],
+    ]},
+    { key:"youtube", label:"YouTube", desc:"Live, upcoming, and upload announcements.", cmds:[
+      ["youtubestatus","None","Check whether YouTube monitoring is on, what channel it posts to, and the last known broadcast status.","/youtubestatus","/youtubestatus"],
+      ["checkyoutube","Manage Server","Force an immediate check instead of waiting for the next scheduled poll.","/checkyoutube","/checkyoutube"],
     ]},
     { key:"utility", label:"Utility", desc:"Info, lookups, and the help menu.", cmds:[
       ["ping","None","Check the bot is online and see its latency.","/ping","/ping"],
