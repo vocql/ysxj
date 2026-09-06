@@ -148,8 +148,9 @@
   .discord-mock .discord-row{ display:flex; gap:14px; }
   .discord-mock .discord-avatar{
     width:42px; height:42px; border-radius:50%; background:var(--paper); flex:none;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
+  .discord-mock .discord-avatar img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
   .discord-mock .discord-avatar span{ font-family:'Fredoka'; font-weight:600; font-size:13px; color:var(--ink); }
   .discord-mock .discord-body{ flex:1; min-width:0; }
   .discord-mock .discord-meta{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
@@ -171,7 +172,8 @@
     display:block; font-family:'JetBrains Mono'; font-size:10px; text-transform:uppercase;
     letter-spacing:0.4px; color:var(--paper-faint); margin-bottom:4px;
   }
-  .embed-field .field-value{ display:block; font-family:'Nunito'; font-size:14px; font-weight:700; color:var(--paper-dim); }
+  .embed-field{ min-width:0; }
+  .embed-field .field-value{ display:block; font-family:'Nunito'; font-size:14px; font-weight:700; color:var(--paper-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .embed-footer{
     margin-top:16px; padding-top:12px; border-top:1px solid var(--line);
     font-family:'Nunito'; font-size:11.5px; color:var(--paper-faint); font-weight:600;
@@ -476,9 +478,11 @@
       </div>
     </div>
     <div class="hero-art">
-      <span class="discord-mock"><img src="ysxjlogo.png" alt="ysxj logo"></span>
+      <div class="discord-mock">
         <div class="discord-row">
-          <div class="discord-avatar"><span>ys</span></div>
+          <div class="discord-avatar">
+            <img src="ysxjlogo.png" alt="ysxj logo">
+          </div>
           <div class="discord-body">
             <div class="discord-meta">
               <span class="discord-name">ysxj</span>
@@ -495,17 +499,17 @@
                   </div>
                   <div class="embed-field">
                     <span class="field-label">Moderator</span>
-                    <span class="field-value">Auto · Honeypot</span>
+                    <span class="field-value">ysxj</span>
                   </div>
                 </div>
                 <div class="embed-fields">
                   <div class="embed-field">
                     <span class="field-label">Member</span>
-                    <span class="field-value">@totally.legit.acc</span>
+                    <span class="field-value">@voqcl</span>
                   </div>
                   <div class="embed-field">
                     <span class="field-label">Logged to</span>
-                    <span class="field-value">#mod-logs +1</span>
+                    <span class="field-value">#mod-logs</span>
                   </div>
                 </div>
                 <div class="embed-footer">ysxj • Mod Logs • Today at 7:41 PM</div>
