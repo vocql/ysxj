@@ -89,10 +89,15 @@
     grid-area:side; background:var(--panel); border-right:1px solid var(--line);
     padding:18px 12px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;
   }
+  .sidebar-brand{
+    display:flex; align-items:center; gap:10px; padding:6px 14px 18px;
+  }
+  .sidebar-brand img{ width:30px; height:30px; border-radius:8px; object-fit:cover; flex:none; background:var(--panel-2); }
+  .sidebar-brand span{ font-family:'Fredoka',sans-serif; font-weight:600; font-size:17px; color:#fff; letter-spacing:0.2px; }
   .nav-item{
     display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:999px;
     background:none; border:none; color:var(--text-dim); font-family:'Fredoka',sans-serif; font-weight:600; font-size:14.5px;
-    cursor:pointer; text-align:left; width:100%;
+    cursor:pointer; text-align:left; width:100%; text-decoration:none;
   }
   .nav-item svg{ width:18px; height:18px; fill:currentColor; flex:none; }
   .nav-item:hover{ color:#fff; background:var(--panel-2); }
@@ -171,6 +176,8 @@
   .np-meta{ display:flex; align-items:center; gap:12px; width:300px; min-width:0; }
   .np-video-wrap{ width:96px; height:54px; border-radius:8px; overflow:hidden; background:var(--panel-2); flex:none; position:relative; }
   .np-video-wrap iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
+  .np-video-wrap .np-logo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:var(--panel-2); }
+  .np-video-wrap .np-logo.hidden-logo{ display:none; }
   .np-text{ min-width:0; }
   .np-text .np-name{ font-family:'Fredoka',sans-serif; font-size:14px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .np-text .np-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
@@ -215,7 +222,7 @@
 <!-- ---------- Setup gate — only shown if the site owner hasn't added an API key yet ---------- -->
 <div id="gate">
   <div class="gate-card">
-    <span class="eyebrow">YouTube</span>
+    <span class="eyebrow">YSXJ Music</span>
     <h1>Almost ready</h1>
     <p id="gateBody">This page needs a YouTube Data API key before it can search or play anything. No visitor needs an account or Premium — the key just lets the page talk to YouTube on everyone's behalf.</p>
     <div class="error hidden" id="gateError"></div>
@@ -237,6 +244,7 @@
   </div>
 
   <div class="sidebar">
+    <div class="sidebar-brand"><img src="ysxjlogo.png" alt=""><span>YSXJ Music</span></div>
     <button class="nav-item active" data-view="home">
       <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"/></svg>
       Home
@@ -256,13 +264,22 @@
     <div class="sidebar-divider"></div>
     <div class="sidebar-label">Your Playlists</div>
     <div id="playlistList"><div class="empty-state" style="padding:8px 14px; font-size:12.5px;">Sign in to see these.</div></div>
+    <div class="sidebar-divider"></div>
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"/></svg>
+      Bot Home
+    </a>
+    <a class="nav-item" href="redirect.html">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 6l8 7 8-7" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      Contact
+    </a>
   </div>
 
   <div class="main" id="main"></div>
 
   <div class="player-bar">
     <div class="np-meta">
-      <div class="np-video-wrap"><div id="ytPlayer"></div></div>
+      <div class="np-video-wrap"><img class="np-logo" id="npLogo" src="ysxjlogo.png" alt=""><div id="ytPlayer"></div></div>
       <div class="np-text">
         <div class="np-name" id="npName">Nothing playing</div>
         <div class="np-artist" id="npArtist"></div>
@@ -474,6 +491,7 @@
     ytPlayer.loadVideoById(v.id);
     $('npName').textContent = v.title;
     $('npArtist').textContent = v.channelTitle;
+    $('npLogo').classList.add('hidden-logo');
     renderQueueViewIfActive();
   }
   function playNow(video){
@@ -774,7 +792,7 @@
     else if(view === 'queue'){ renderQueueView(); }
   }
 
-  document.querySelectorAll('.nav-item').forEach(btn => {
+  document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
 
@@ -848,4 +866,3 @@
 </script>
 </body>
 </html>
-
