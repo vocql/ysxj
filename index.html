@@ -3,1067 +3,847 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ysxj — Discord Moderation Bot</title>
-<meta name="description" content="ysxj is a Discord moderation bot with case history, an automated spam trap, media-lock mode, welcome messages, and a full slash-command reference.">
-<link rel="icon" type="image/png" href="ysxjlogo.png">
+<title>YouTube Client</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#101012;
-    --ink-2:#1a1a1d;
-    --ink-3:#232327;
-    --paper:#f7f5ef;
-    --paper-dim:#c9c7bd;
-    --paper-faint:#8c8a80;
-    --line: rgba(247,245,239,0.14);
-    --line-strong: rgba(247,245,239,0.28);
-    --radius-lg:32px;
-    --radius-md:22px;
-    --radius-sm:14px;
-    --maxw:1180px;
+    --bg:#000;
+    --panel:#0d0d0d;
+    --panel-2:#161616;
+    --line: rgba(255,255,255,0.12);
+    --line-strong: rgba(255,255,255,0.24);
+    --text:#ffffff;
+    --text-dim:#a6a6a6;
+    --text-faint:#6b6b6b;
+    --danger:#ff6b6b;
+    --radius-lg:24px;
+    --radius-md:16px;
+    --radius-sm:10px;
   }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--text); font-family:'Nunito',sans-serif; font-weight:600; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,h4{ font-family:'Fredoka',sans-serif; font-weight:600; margin:0; }
+  code,.mono{ font-family:'JetBrains Mono',monospace; }
+  ::selection{ background:#fff; color:#000; }
+  a{ color:inherit; }
+  button{ font-family:inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:#2a2a2a; border-radius:999px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
 
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    background:var(--ink);
-    color:var(--paper);
-    font-family:'Nunito', sans-serif;
-    font-size:18px;
-    font-weight:600;
-    line-height:1.55;
-    -webkit-font-smoothing:antialiased;
+  .hidden{ display:none !important; }
+
+  /* ---------- setup gate (only shown if the site owner hasn't configured an API key) ---------- */
+  #gate{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
   }
-
-  img{ border-radius:999px; }
-
-  .skip-link{
-    position:absolute; left:-9999px; top:0; z-index:999; background:var(--paper); color:var(--ink);
-    padding:12px 20px; border-radius:999px; text-decoration:none; font-weight:700;
+  .gate-card{
+    width:min(420px, 90vw); padding:36px 32px; border-radius:var(--radius-lg);
+    background:var(--panel); border:2px solid var(--line-strong); text-align:left;
   }
-  .skip-link:focus{ left:12px; top:12px; }
-
-  h1,h2,h3,h4{
-    font-family:'Fredoka', sans-serif;
-    font-weight:600;
-    margin:0;
+  .gate-card .eyebrow{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.5px; color:var(--text-dim); border:1.5px solid var(--line-strong); padding:5px 14px; border-radius:999px; margin-bottom:16px;
   }
-  code, .mono{ font-family:'JetBrains Mono', monospace; }
-  a{color:inherit;}
-  ::selection{background:var(--paper); color:var(--ink);}
-  a:focus-visible, button:focus-visible, input:focus-visible{
-    outline:3px solid var(--paper); outline-offset:2px; border-radius:8px;
-  }
-  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+  .gate-card h1{ font-size:28px; margin-bottom:10px; }
+  .gate-card p{ color:var(--text-dim); font-size:15px; line-height:1.55; margin:0 0 18px; }
+  .gate-card .notice{ margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); line-height:1.7; word-break:break-word; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px 16px; }
+  .gate-card .error{ color:var(--danger); font-size:13px; margin-top:12px; }
 
-  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px;}
-  section{position:relative; padding:100px 0;}
-
-  /* ---------- pills ---------- */
-  .pill-row{display:flex; flex-wrap:wrap; gap:14px; align-items:center;}
   .pill{
-    display:inline-flex; align-items:center; gap:10px;
-    padding:16px 32px; border-radius:999px;
-    font-family:'Fredoka', sans-serif; font-size:17px; font-weight:600;
-    text-decoration:none;
-    border:2.5px solid var(--paper); background:transparent; color:var(--paper);
-    cursor:pointer; transition: transform .15s ease, background .15s ease, color .15s ease;
-    white-space:nowrap;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:13px 22px; border-radius:999px; border:2px solid #fff; background:transparent; color:#fff;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; cursor:pointer;
+    transition:transform .12s ease, background .12s ease, color .12s ease; white-space:nowrap;
   }
-  .pill.solid{ background:var(--paper); color:var(--ink); }
-  .pill:hover{ transform:translateY(-2px) scale(1.02); }
-  .pill.solid:hover{ background:transparent; color:var(--paper); }
-  .pill.sm{ padding:9px 20px; font-size:14px; border-width:2px; }
+  .pill.solid{ background:#fff; color:#000; }
+  .pill.solid:hover{ background:transparent; color:#fff; }
+  .pill:hover{ transform:translateY(-1px); }
+  .pill.full{ width:100%; }
+  .pill.sm{ padding:8px 16px; font-size:13px; }
 
-  .chip{
-    display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--line-strong);
-    color:var(--paper-dim); font-family:'JetBrains Mono',monospace; font-size:12px; text-transform:uppercase;
-    letter-spacing:0.4px; padding:6px 14px; border-radius:999px; cursor:pointer; transition:all .15s ease; background:none;
-  }
-  .chip:hover{ border-color:var(--paper); color:var(--paper); }
-  .chip.copied{ border-color:var(--paper); color:var(--paper); background:var(--ink-3); }
+  /* ---------- app shell ---------- */
+  #app{ display:none; height:100vh; grid-template-rows:64px 1fr 96px; grid-template-columns:240px 1fr; grid-template-areas:"top top" "side main" "player player"; }
+  #app.show{ display:grid; }
 
-  /* ---------- nav ---------- */
-  header.nav{
-    position:sticky; top:16px; z-index:50; padding:0 20px;
+  .topbar{
+    grid-area:top; display:flex; align-items:center; gap:16px; padding:0 22px;
+    border-bottom:1px solid var(--line); background:var(--panel);
   }
-  .nav-inner{
-    max-width:var(--maxw); margin:0 auto; padding:10px 10px 10px 22px;
-    display:flex; align-items:center; justify-content:space-between; gap:20px;
-    background:rgba(16,16,18,0.85); backdrop-filter:blur(10px);
-    border:2px solid var(--line-strong); border-radius:999px;
+  .search-wrap{ flex:1; max-width:520px; position:relative; }
+  .search-wrap svg{ position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; fill:var(--text-faint); }
+  #searchInput{
+    width:100%; background:var(--panel-2); border:1.5px solid var(--line); color:#fff;
+    padding:11px 16px 11px 38px; border-radius:999px; font-family:'Nunito',sans-serif; font-weight:700; font-size:14.5px;
   }
-  .brand{ display:flex; align-items:center; gap:10px; font-family:'Fredoka', sans-serif; font-size:21px; font-weight:600; }
-  .brand .dot-logo{ width:32px; height:32px; border-radius:50%; background:var(--ink-3); border:1.5px solid var(--line-strong); display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; }
-  .brand .dot-logo img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
-  nav.links{display:flex; gap:4px;}
-  nav.links a{
-    text-decoration:none; font-size:15px; font-weight:700; font-family:'Fredoka';
-    color:var(--paper-dim); padding:10px 16px; border-radius:999px;
-    transition:color .15s ease, background .15s ease;
-  }
-  nav.links a:hover{color:var(--paper); background:var(--ink-3);}
-  .nav-cta{display:flex; gap:8px;}
-  #navToggle{display:none;}
-  @media (max-width:960px){
-    nav.links{display:none;}
-    #navToggle{ display:inline-flex; background:var(--ink-3); border:none; color:var(--paper); border-radius:999px; padding:10px 18px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; }
-  }
+  #searchInput::placeholder{ color:var(--text-faint); font-weight:600; }
+  #searchInput:focus{ outline:none; border-color:#fff; }
+  .topbar-right{ display:flex; align-items:center; gap:10px; }
+  #userTag{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); }
 
-  /* ---------- hero ---------- */
-  .hero{ padding:150px 0 90px; overflow:hidden; }
-  .hero-inner{
-    max-width:var(--maxw); margin:0 auto; padding:0 28px;
-    display:grid; grid-template-columns: 1.05fr 0.95fr; gap:56px; align-items:center;
+  .sidebar{
+    grid-area:side; background:var(--panel); border-right:1px solid var(--line);
+    padding:18px 12px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;
   }
-  @media (max-width:900px){ .hero-inner{ grid-template-columns:1fr; } }
+  .nav-item{
+    display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:999px;
+    background:none; border:none; color:var(--text-dim); font-family:'Fredoka',sans-serif; font-weight:600; font-size:14.5px;
+    cursor:pointer; text-align:left; width:100%;
+  }
+  .nav-item svg{ width:18px; height:18px; fill:currentColor; flex:none; }
+  .nav-item:hover{ color:#fff; background:var(--panel-2); }
+  .nav-item.active{ color:#000; background:#fff; }
+  .nav-item.locked{ opacity:0.5; }
+  .sidebar-divider{ height:1px; background:var(--line); margin:12px 6px; }
+  .sidebar-label{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--text-faint); padding:8px 14px 4px;
+  }
+  .playlist-item{
+    display:block; width:100%; text-align:left; background:none; border:none; color:var(--text-dim);
+    padding:8px 14px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .playlist-item:hover{ color:#fff; background:var(--panel-2); }
+  .playlist-item.active{ color:#fff; background:var(--panel-2); }
 
-  .status-chip{
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.5px; text-transform:uppercase;
-    color:var(--paper-dim); border:1.5px solid var(--line-strong); padding:7px 16px 7px 10px; border-radius:999px;
+  .main{ grid-area:main; overflow-y:auto; padding:28px 32px 40px; }
+  .view-title{ font-size:30px; margin-bottom:6px; }
+  .view-sub{ color:var(--text-dim); font-size:14.5px; margin-bottom:26px; }
+  .section-label{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--text-faint); margin:28px 0 12px;
   }
-  .status-chip .dot{ width:8px; height:8px; border-radius:50%; background:var(--paper); }
+  .section-label:first-child{ margin-top:0; }
 
-  .hero h1{
-    font-size:clamp(52px, 7.5vw, 94px); line-height:0.98; color:var(--paper); margin-top:20px;
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:16px; }
+  .art-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px;
+    cursor:pointer; transition:background .15s ease, transform .15s ease;
   }
-  .hero p.lede{ max-width:520px; font-size:21px; color:var(--paper-dim); margin-top:22px; font-weight:600; }
+  .art-card:hover{ background:var(--panel-2); transform:translateY(-2px); }
+  .art-card img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:var(--radius-sm); background:var(--panel-2); display:block; margin-bottom:10px; }
+  .art-card.round img{ aspect-ratio:1; border-radius:999px; }
+  .art-card .name{ font-family:'Fredoka',sans-serif; font-size:14.5px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .art-card .sub{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
 
-  .badge-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
-  .stat-badge{
-    display:inline-flex; align-items:center; gap:8px; background:var(--ink-2); border:1.5px solid var(--line);
-    padding:10px 18px; border-radius:999px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--paper-dim);
+  .track-row{
+    display:flex; align-items:center; gap:14px; padding:9px 10px; border-radius:10px;
   }
-  .stat-badge strong{ color:var(--paper); font-family:'Fredoka'; font-weight:600; }
+  .track-row:hover{ background:var(--panel-2); }
+  .track-row .idx{ width:22px; text-align:center; color:var(--text-faint); font-family:'JetBrains Mono',monospace; font-size:12.5px; flex:none; }
+  .track-row img{ width:78px; height:44px; border-radius:8px; object-fit:cover; background:var(--panel-2); flex:none; }
+  .track-row .t-main{ min-width:0; flex:1; }
+  .track-row .t-name{ font-family:'Nunito',sans-serif; font-weight:700; font-size:14.5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .track-row .t-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+  .track-row .t-dur{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-faint); flex:none; width:44px; text-align:right; }
+  .row-btn{
+    background:none; border:none; color:var(--text-dim); cursor:pointer; padding:6px; flex:none;
+    display:flex; align-items:center; justify-content:center; opacity:0.75;
+  }
+  .row-btn:hover{ opacity:1; color:#fff; }
+  .row-btn svg{ width:17px; height:17px; fill:currentColor; }
+  .row-btn.liked{ color:#fff; opacity:1; }
+  .row-btn[disabled]{ cursor:not-allowed; opacity:0.3; }
+  .row-play{
+    background:#fff; color:#000; border:none; border-radius:50%; width:32px; height:32px; flex:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .1s ease;
+  }
+  .track-row:hover .row-play{ opacity:1; }
+  .row-play svg{ width:13px; height:13px; fill:#000; }
 
-  .hero .pill-row{margin-top:34px;}
+  .empty-state{ color:var(--text-faint); font-size:14.5px; padding:30px 6px; }
+  .load-more-wrap{ margin-top:18px; }
 
-  /* ---------- hero discord-embed mock ---------- */
-  .hero-art{ display:flex; justify-content:center; align-items:center; position:relative; }
-  .discord-mock{ width:min(400px, 100%); background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-md); padding:20px 22px 22px; }
-  .discord-mock .discord-row{ display:flex; gap:14px; }
-  .discord-mock .discord-avatar{
-    width:42px; height:42px; border-radius:50%; background:var(--paper); flex:none;
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-  .discord-mock .discord-avatar img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
-  .discord-mock .discord-avatar span{ font-family:'Fredoka'; font-weight:600; font-size:13px; color:var(--ink); }
-  .discord-mock .discord-body{ flex:1; min-width:0; }
-  .discord-mock .discord-meta{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
-  .discord-mock .discord-name{ font-family:'Fredoka'; font-weight:600; font-size:15.5px; color:var(--paper); }
-  .discord-mock .discord-app-badge{
-    font-family:'Nunito'; font-weight:800; font-size:9.5px; letter-spacing:0.3px;
-    background:#5865f2; color:#fff; padding:2px 6px 1px; border-radius:4px;
-  }
-  .discord-mock .discord-time{ font-family:'Nunito'; font-size:12px; color:var(--paper-faint); font-weight:600; }
-  .discord-embed{
-    background:var(--ink-3); border-left:4px solid var(--paper); border-radius:8px;
-    padding:16px 20px 18px; display:flex; gap:16px; justify-content:space-between;
-  }
-  .discord-embed .embed-main{ flex:1; min-width:0; }
-  .embed-title{ font-family:'Fredoka'; font-weight:600; font-size:17px; color:var(--paper); margin-bottom:14px; }
-  .embed-fields{ display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
-  .embed-fields + .embed-fields{ margin-top:14px; }
-  .embed-field .field-label{
-    display:block; font-family:'JetBrains Mono'; font-size:10px; text-transform:uppercase;
-    letter-spacing:0.4px; color:var(--paper-faint); margin-bottom:4px;
-  }
-  .embed-field{ min-width:0; }
-  .embed-field .field-value{ display:block; font-family:'Nunito'; font-size:14px; font-weight:700; color:var(--paper-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .embed-footer{
-    margin-top:16px; padding-top:12px; border-top:1px solid var(--line);
-    font-family:'Nunito'; font-size:11.5px; color:var(--paper-faint); font-weight:600;
-  }
-  .discord-embed .embed-thumb{
-    width:44px; height:44px; border-radius:10px; background:var(--ink); flex:none;
-    display:flex; align-items:center; justify-content:center; font-size:20px;
-  }
+  .playlist-header{ display:flex; gap:22px; align-items:flex-end; margin-bottom:28px; }
+  .playlist-header img{ width:220px; height:124px; border-radius:var(--radius-md); object-fit:cover; background:var(--panel-2); flex:none; }
+  .playlist-header .ph-meta{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-faint); margin-top:8px; text-transform:uppercase; letter-spacing:0.4px; }
 
-  .stat-strip{ background:var(--ink-2); border-radius:var(--radius-lg); margin:0 28px; }
-  .stat-strip .wrap{ display:flex; flex-wrap:wrap; padding:0; max-width:calc(var(--maxw) - 56px); }
-  .stat{ flex:1 1 200px; padding:30px 30px; text-align:center; border-right:2px solid var(--line); }
-  .stat:last-child{border-right:none;}
-  .stat .num{font-family:'Fredoka',sans-serif; font-size:38px; color:var(--paper); font-weight:600;}
-  .stat .label{color:var(--paper-dim); font-size:14px; margin-top:4px; font-weight:700;}
+  /* ---------- now playing bar ---------- */
+  .player-bar{
+    grid-area:player; background:var(--panel); border-top:1px solid var(--line);
+    display:flex; align-items:center; gap:20px; padding:0 22px;
+  }
+  .np-meta{ display:flex; align-items:center; gap:12px; width:300px; min-width:0; }
+  .np-video-wrap{ width:96px; height:54px; border-radius:8px; overflow:hidden; background:var(--panel-2); flex:none; position:relative; }
+  .np-video-wrap iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
+  .np-text{ min-width:0; }
+  .np-text .np-name{ font-family:'Fredoka',sans-serif; font-size:14px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .np-text .np-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
 
-  .section-head{margin-bottom:56px; max-width:680px;}
-  .section-head .eyebrow{
-    display:inline-block; font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.5px; text-transform:uppercase;
-    color:var(--paper-dim); border:1.5px solid var(--line-strong); padding:6px 16px; border-radius:999px; margin-bottom:16px;
-  }
-  .section-head h2{font-size:clamp(32px, 4.4vw, 50px);}
-  .section-head p{color:var(--paper-dim); font-size:19px; margin-top:14px; font-weight:600;}
+  .np-center{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; max-width:640px; margin:0 auto; }
+  .np-controls{ display:flex; align-items:center; gap:20px; }
+  .np-ctrl{ background:none; border:none; color:#fff; cursor:pointer; opacity:0.8; display:flex; align-items:center; }
+  .np-ctrl:hover{ opacity:1; }
+  .np-ctrl svg{ width:18px; height:18px; fill:currentColor; }
+  .np-ctrl.play{ width:34px; height:34px; border-radius:50%; background:#fff; color:#000; justify-content:center; opacity:1; }
+  .np-ctrl.play svg{ width:14px; height:14px; fill:#000; }
+  .np-progress{ display:flex; align-items:center; gap:8px; width:100%; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-faint); }
+  .np-bar-track{ flex:1; height:4px; border-radius:999px; background:var(--panel-2); position:relative; cursor:pointer; }
+  .np-bar-fill{ position:absolute; left:0; top:0; bottom:0; border-radius:999px; background:#fff; width:0%; }
 
-  /* ---------- feature bubbles ---------- */
-  .feature-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
-  @media (max-width:900px){ .feature-grid{grid-template-columns:repeat(2,1fr);} }
-  @media (max-width:600px){ .feature-grid{grid-template-columns:1fr;} }
+  .np-right{ width:220px; display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+  .np-badge{
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px;
+    color:var(--text-faint); border:1px solid var(--line); padding:4px 10px; border-radius:999px;
+  }
+  input[type="range"].vol{ -webkit-appearance:none; width:90px; height:3px; border-radius:999px; background:var(--panel-2); outline:none; }
+  input[type="range"].vol::-webkit-slider-thumb{ -webkit-appearance:none; width:11px; height:11px; border-radius:50%; background:#fff; cursor:pointer; }
+  input[type="range"].vol::-moz-range-thumb{ width:11px; height:11px; border-radius:50%; border:none; background:#fff; cursor:pointer; }
 
-  .feature{
-    border-radius:var(--radius-lg); padding:30px 26px 28px; position:relative;
-    background:var(--ink-2); border:2px solid var(--line);
-    transition:transform .18s ease, border-color .18s ease;
+  .toast{
+    position:fixed; bottom:110px; left:50%; transform:translateX(-50%);
+    background:#fff; color:#000; padding:12px 24px; border-radius:999px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px;
+    z-index:200; opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease;
   }
-  .feature.alt{ background:var(--paper); color:var(--ink); border-color:var(--paper); }
-  .feature:hover{ transform:translateY(-6px); border-color:var(--paper); }
-  .feature.alt:hover{ border-color:var(--ink); }
-  .feature .icon-badge{
-    width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    background:var(--ink); margin-bottom:18px;
-  }
-  .feature.alt .icon-badge{ background:var(--ink); }
-  .feature .icon-badge svg{ width:26px; height:26px; color:var(--paper); }
-  .feature h3{font-size:23px; margin-bottom:10px;}
-  .feature p{color:var(--paper-dim); font-size:16.5px; margin:0; font-weight:600;}
-  .feature.alt p{ color:#5a5850; }
-  .feature .jump{
-    display:inline-block; margin-top:16px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
-    color:inherit; text-decoration:none; opacity:0.6;
-  }
-  .feature .jump:hover{ opacity:1; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
 
-  /* ---------- setup ---------- */
-  .steps{ display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; counter-reset:stepnum; }
-  @media (max-width:900px){ .steps{grid-template-columns:repeat(2,1fr);} }
-  @media (max-width:560px){ .steps{grid-template-columns:1fr;} }
-  .step{
-    background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-md); padding:26px 22px 24px; position:relative;
-    counter-increment:stepnum;
+  @media (max-width:820px){
+    #app{ grid-template-columns:0 1fr; }
+    .sidebar{ display:none; }
+    .np-meta{ width:auto; }
+    .np-right{ width:auto; }
   }
-  .step .num-pill{
-    display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%;
-    background:var(--paper); color:var(--ink); font-family:'Fredoka'; font-weight:600; font-size:15px; margin-bottom:14px;
-  }
-  .step .num-pill::before{ content:counter(stepnum,decimal-leading-zero); }
-  .step h3{font-size:20px; margin:0 0 8px;}
-  .step p{color:var(--paper-dim); font-size:16px; margin:0; font-weight:600;}
-
-  .terminal{
-    margin-top:44px; background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-md); overflow:hidden;
-  }
-  .terminal-head{
-    display:flex; align-items:center; justify-content:space-between; padding:14px 22px;
-    border-bottom:2px solid var(--line);
-  }
-  .terminal-head .label{ font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--paper-dim); }
-  .terminal-body{ padding:22px; font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--paper); }
-  .terminal-body .line{ margin-bottom:10px; }
-  .terminal-body .line:last-child{ margin-bottom:0; }
-  .terminal-body .prompt{ color:var(--paper-faint); margin-right:8px; }
-  .terminal-body .comment{ color:var(--paper-faint); }
-
-  /* ---------- callout / permissions matrix ---------- */
-  .callout{
-    background:var(--paper); color:var(--ink); border-radius:var(--radius-lg); padding:34px 36px 30px; position:relative;
-  }
-  .callout h4{font-family:'Fredoka',sans-serif; font-weight:600; font-size:22px; display:flex; align-items:center; gap:12px;}
-  .callout h4 .icon-badge{ width:36px; height:36px; border-radius:50%; background:var(--ink); display:flex; align-items:center; justify-content:center; flex:none; }
-  .callout h4 .icon-badge svg{ width:18px; height:18px; color:var(--paper); }
-  .callout p{color:#4d4b44; margin-top:14px; font-size:16.5px;}
-  .callout ul{color:#4d4b44; font-size:16px; margin:14px 0 0; padding-left:0; list-style:none;}
-  .callout li{margin-bottom:10px; padding-left:26px; position:relative;}
-  .callout li::before{ content:"●"; position:absolute; left:0; top:2px; font-size:9px; color:var(--ink); }
-  .callout li strong{color:var(--ink);}
-  .callout .hint{
-    margin-top:20px; padding:14px 20px; border-radius:999px;
-    background:var(--ink); color:var(--paper); font-size:14.5px; font-family:'JetBrains Mono',monospace;
-  }
-  .callout code{ background:rgba(16,16,18,0.08); padding:2px 8px; border-radius:6px; color:var(--ink); }
-
-  .matrix-wrap{ margin-top:44px; overflow-x:auto; background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-md); padding:8px; }
-  table.matrix{ width:100%; border-collapse:collapse; min-width:640px; }
-  table.matrix caption{ text-align:left; font-family:'Fredoka',sans-serif; font-weight:600; font-size:16px; margin:12px 0 6px 16px; }
-  table.matrix th, table.matrix td{ padding:14px 20px; text-align:left; font-size:15.5px; }
-  table.matrix thead th{ font-family:'JetBrains Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--paper-faint); border-bottom:2px solid var(--line-strong); }
-  table.matrix tbody tr:not(:last-child) td, table.matrix tbody tr:not(:last-child) th{ border-bottom:1px solid var(--line); }
-  table.matrix tbody th{ color:var(--paper); font-family:'Fredoka'; font-weight:600; }
-  table.matrix td .yes{ display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--paper); color:var(--ink); align-items:center; justify-content:center; font-family:'JetBrains Mono'; font-size:12px; font-weight:700; }
-  table.matrix td .no{ color:var(--paper-faint); }
-  table.matrix td code{ color:var(--paper-dim); }
-
-  /* ---------- commands ---------- */
-  .cmd-controls{ display:flex; flex-wrap:wrap; gap:12px; margin-bottom:24px; align-items:center; }
-  .search-box{ flex:1 1 260px; position:relative; }
-  .search-box input{
-    width:100%; background:var(--ink-2); border:2px solid var(--line-strong); color:var(--paper);
-    padding:15px 24px; border-radius:999px; font-family:'Nunito', sans-serif; font-weight:700; font-size:17px;
-  }
-  .search-box input::placeholder{color:var(--paper-faint); font-weight:600;}
-  .search-box input:focus{border-color:var(--paper); outline:none;}
-
-  .cat-pills{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
-  .cat-pill{
-    font-family:'Fredoka'; font-weight:600; font-size:14.5px; padding:11px 20px; border-radius:999px;
-    background:var(--ink-2); border:2px solid var(--line); color:var(--paper-dim); cursor:pointer;
-    display:inline-flex; align-items:center; gap:8px; transition:all .15s ease;
-  }
-  .cat-pill .n{ font-family:'JetBrains Mono'; font-size:11.5px; background:var(--ink-3); padding:2px 8px; border-radius:999px; }
-  .cat-pill:hover{ border-color:var(--paper-dim); color:var(--paper); }
-  .cat-pill.active{ background:var(--paper); color:var(--ink); border-color:var(--paper); }
-  .cat-pill.active .n{ background:rgba(16,16,18,0.12); color:var(--ink); }
-
-  .cmd-count{color:var(--paper-faint); font-size:14px; margin-bottom:26px; font-family:'JetBrains Mono',monospace;}
-  .cmd-count strong{color:var(--paper);}
-
-  .flyer{
-    background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-md); margin-bottom:16px;
-    position:relative; overflow:hidden; scroll-margin-top:110px;
-  }
-  .flyer-head{
-    width:100%; text-align:left; background:none; border:none; color:var(--paper);
-    padding:22px 26px; display:flex; align-items:center; justify-content:space-between; gap:16px;
-    cursor:pointer; font-family:inherit;
-  }
-  .flyer-head h3{ font-size:22px; display:flex; align-items:center; gap:10px; }
-  .flyer-head .cat-desc{ display:block; color:var(--paper-dim); font-size:14.5px; font-family:'Nunito'; font-weight:600; margin-top:5px; }
-  .flyer-head .badge{
-    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--ink); background:var(--paper);
-    padding:4px 12px; border-radius:999px; white-space:nowrap; font-weight:700;
-  }
-  .flyer-head .chevron{
-    display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%;
-    background:var(--ink-3); font-size:14px; transition:transform .2s ease; flex:none;
-  }
-  .flyer.open .chevron{ transform:rotate(180deg); }
-  .flyer-body{ max-height:0; overflow:hidden; transition:max-height .28s ease; }
-  .flyer.open .flyer-body{ max-height:8000px; }
-  .flyer-body-inner{ padding:4px 22px 24px; display:flex; flex-direction:column; gap:12px; }
-
-  .cmd-card{
-    background:var(--ink-3); border-radius:var(--radius-sm); padding:18px 20px 20px; position:relative;
-  }
-  .cmd-card .cmd-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-  .cmd-card .cmd-name{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:16px; color:var(--paper); }
-  .cmd-card .cmd-name::before{content:"/"; color:var(--paper-faint);}
-  .cmd-card .cmd-perm{
-    display:inline-block; margin-top:9px; font-size:11.5px; letter-spacing:0.3px;
-    color:var(--paper-dim); background:var(--ink); padding:3px 12px; border-radius:999px; font-family:'JetBrains Mono',monospace;
-  }
-  .cmd-card p.desc{color:var(--paper-dim); font-size:15px; margin:11px 0 0; font-weight:600;}
-  .cmd-card .cmd-usage{
-    margin-top:12px; background:var(--ink); border-radius:var(--radius-sm); padding:10px 16px;
-    font-family:'JetBrains Mono',monospace; font-size:13.5px; color:var(--paper); overflow-x:auto; white-space:nowrap;
-  }
-  .cmd-card .cmd-example{ margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--paper-faint); }
-  .cmd-card .cmd-example b{ color:var(--paper-dim); font-weight:700; font-family:'Nunito'; }
-  .cmd-card[data-hidden="true"]{display:none;}
-  .flyer[data-hidden="true"]{display:none;}
-
-  /* ---------- FAQ ---------- */
-  .faq-list{ display:flex; flex-direction:column; gap:12px; }
-  .faq-item{ background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-md); }
-  .faq-q{
-    width:100%; text-align:left; background:none; border:none; color:var(--paper); cursor:pointer;
-    padding:22px 26px; display:flex; justify-content:space-between; align-items:center; gap:16px; font-family:'Fredoka'; font-size:18px; font-weight:600;
-  }
-  .faq-q .chevron{ display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:var(--ink-3); font-size:13px; transition:transform .2s ease; flex:none; }
-  .faq-item.open .chevron{ transform:rotate(180deg); }
-  .faq-a{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
-  .faq-item.open .faq-a{ max-height:400px; }
-  .faq-a p{ padding:0 26px 22px; margin:0; color:var(--paper-dim); font-size:16px; font-weight:600; }
-
-  /* ---------- changelog ---------- */
-  .changelog{ display:flex; flex-direction:column; gap:16px; }
-  .change-entry{ background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-md); padding:26px 28px; }
-  .change-head{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
-  .change-version{ font-family:'Fredoka',sans-serif; font-size:19px; color:var(--paper); font-weight:600; background:var(--ink-3); padding:4px 16px; border-radius:999px; }
-  .change-date{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--paper-faint); }
-  .change-entry ul{ margin:14px 0 0; padding-left:0; list-style:none; color:var(--paper-dim); font-size:16px; font-weight:600; }
-  .change-entry li{ margin-bottom:8px; padding-left:22px; position:relative; }
-  .change-entry li::before{ content:"●"; position:absolute; left:0; top:3px; font-size:8px; color:var(--paper-faint); }
-  .change-tag{
-    font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px;
-    padding:2px 10px; border-radius:999px; margin-left:6px; background:var(--ink); color:var(--paper-dim);
-  }
-
-  /* ---------- CTA band ---------- */
-  .cta-band{ padding:20px 28px 100px; }
-  .cta-inner{
-    max-width:var(--maxw); margin:0 auto; background:var(--paper); color:var(--ink);
-    border-radius:var(--radius-lg); padding:90px 40px; text-align:center;
-  }
-  .cta-inner h2{font-size:clamp(32px, 4.8vw, 54px);}
-  .cta-inner p{color:#4d4b44; font-size:19px; max-width:560px; margin:16px auto 32px; font-weight:600;}
-  .cta-inner .pill-row{justify-content:center;}
-  .cta-inner .pill{ border-color:var(--ink); color:var(--ink); }
-  .cta-inner .pill.solid{ background:var(--ink); color:var(--paper); }
-  .cta-inner .pill.solid:hover{ background:transparent; color:var(--ink); }
-  .cta-inner .pill:hover{ background:var(--ink); color:var(--paper); }
-
-  /* ---------- footer ---------- */
-  footer{ padding:20px 0 50px; }
-  .foot-card{ background:var(--ink-2); border:2px solid var(--line); border-radius:var(--radius-lg); padding:50px 44px; }
-  .foot-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:36px; margin-bottom:40px; }
-  @media (max-width:760px){ .foot-grid{ grid-template-columns:1fr 1fr; } }
-  .foot-col h4{ font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; color:var(--paper); margin-bottom:16px; }
-  .foot-col ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
-  .foot-col a{ color:var(--paper-dim); text-decoration:none; font-size:15.5px; font-weight:600; }
-  .foot-col a:hover{ color:var(--paper); }
-  .foot-col p{ color:var(--paper-dim); font-size:15.5px; max-width:280px; font-weight:600; }
-  .foot-bottom{ border-top:2px solid var(--line); padding-top:24px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; align-items:center; }
-  .foot-bottom .brand{font-size:16px;}
-  footer .small{color:var(--paper-faint); font-size:14px; font-weight:600;}
-
-  .private-banner{ padding:16px 20px 0; }
-  .private-banner .inner{
-    max-width:var(--maxw); margin:0 auto; background:var(--paper); color:var(--ink);
-    text-align:center; padding:12px 24px; border-radius:999px;
-    font-family:'Fredoka', sans-serif; font-size:14px; font-weight:600;
-  }
-  .private-banner a{ color:var(--ink); text-decoration:underline; }
-
-  /* ---------- back to top ---------- */
-  #backToTop{
-    position:fixed; right:24px; bottom:24px; z-index:80;
-    width:56px; height:56px; border-radius:50%; background:var(--paper); color:var(--ink);
-    border:none; font-family:'Fredoka',sans-serif; font-size:20px; font-weight:700; cursor:pointer;
-    opacity:0; pointer-events:none; transform:translateY(10px) scale(0.9);
-    transition:opacity .2s ease, transform .2s ease;
-  }
-  #backToTop.show{ opacity:1; pointer-events:auto; transform:translateY(0) scale(1); }
-  #backToTop:hover{ transform:translateY(-2px) scale(1.05); }
 </style>
 </head>
 <body>
 
-<a class="skip-link" href="#main">Skip to content</a>
-
-<div class="private-banner">
-  <div class="inner">Whitelisted access only — message VOQCL on Discord or <a href="https://discord.gg/3hkfHPwc2t" target="_blank" rel="noopener">join the support server</a> to request access</div>
-</div>
-
-<header class="nav">
-  <div class="nav-inner">
-    <div class="brand">
-      <span class="dot-logo"><img src="ysxjlogo.png" alt="ysxj logo"></span>
-      <span>ysxj</span>
-    </div>
-    <nav class="links">
-      <a href="#features">Features</a>
-      <a href="#setup">Setup</a>
-      <a href="#commands">Commands</a>
-      <a href="#access">Access</a>
-      <a href="#faq">FAQ</a>
-      <a href="#changelog">Changelog</a>
-    </nav>
-    <div class="nav-cta">
-      <a class="pill sm" href="redirect.html">Contact</a>
-      <a class="pill sm solid" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Invite Bot</a>
-    </div>
-    <button id="navToggle" aria-label="Toggle menu">Menu</button>
-  </div>
-</header>
-
-<main id="main">
-
-<!-- ============ HERO ============ -->
-<section class="hero">
-  <div class="hero-inner">
-    <div>
-      <span class="status-chip"><span class="dot"></span>Discord moderation bot</span>
-      <h1>ysxj</h1>
-      <p class="lede">A complete moderation bot for Discord: bans and warnings, full case history, an automated spam trap, a media-lock mode, and welcome messages. One bot, every server.</p>
-      <div class="badge-row">
-        <span class="stat-badge"><strong>v2.5.0</strong></span>
-        <span class="stat-badge">Uptime <strong>99.9%</strong></span>
-        <span class="stat-badge"><strong>70+</strong> commands</span>
-      </div>
-      <div class="pill-row">
-        <a class="pill solid" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Add to Server</a>
-        <a class="pill" href="#commands">Browse Commands</a>
-      </div>
-    </div>
-    <div class="hero-art">
-      <div class="discord-mock">
-        <div class="discord-row">
-          <div class="discord-avatar">
-            <img src="ysxjlogo.png" alt="ysxj logo">
-          </div>
-          <div class="discord-body">
-            <div class="discord-meta">
-              <span class="discord-name">ysxj</span>
-              <span class="discord-app-badge">APP</span>
-              <span class="discord-time">Today at 7:41 PM</span>
-            </div>
-            <div class="discord-embed">
-              <div class="embed-main">
-                <div class="embed-title">🔨 Case Logged — #482</div>
-                <div class="embed-fields">
-                  <div class="embed-field">
-                    <span class="field-label">Action</span>
-                    <span class="field-value">Softban</span>
-                  </div>
-                  <div class="embed-field">
-                    <span class="field-label">Moderator</span>
-                    <span class="field-value">ysxj</span>
-                  </div>
-                </div>
-                <div class="embed-fields">
-                  <div class="embed-field">
-                    <span class="field-label">Member</span>
-                    <span class="field-value">@voqcl</span>
-                  </div>
-                  <div class="embed-field">
-                    <span class="field-label">Logged to</span>
-                    <span class="field-value">#ysxj-logs</span>
-                  </div>
-                </div>
-                <div class="embed-footer">ysxj • Mod Logs • Today at 7:41 PM</div>
-              </div>
-              <div class="embed-thumb">🚨</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="stat-strip">
-  <div class="wrap">
-    <div class="stat"><div class="num">70+</div><div class="label">Slash Commands</div></div>
-    <div class="stat"><div class="num">∞</div><div class="label">Servers Supported</div></div>
-    <div class="stat"><div class="num">100%</div><div class="label">Actions Cased &amp; Logged</div></div>
-    <div class="stat"><div class="num">3</div><div class="label">Exemption Sources</div></div>
+<!-- ---------- Setup gate — only shown if the site owner hasn't added an API key yet ---------- -->
+<div id="gate">
+  <div class="gate-card">
+    <span class="eyebrow">YouTube</span>
+    <h1>Almost ready</h1>
+    <p id="gateBody">This page needs a YouTube Data API key before it can search or play anything. No visitor needs an account or Premium — the key just lets the page talk to YouTube on everyone's behalf.</p>
+    <div class="error hidden" id="gateError"></div>
+    <div class="notice hidden" id="setupNotice"></div>
   </div>
 </div>
 
-<!-- ============ FEATURES ============ -->
-<section id="features">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Capabilities</span>
-      <h2>Eleven systems, one bot</h2>
-      <p>Every feature is configured per server, backed by sensible defaults, and saved to disk — nothing resets when the bot restarts.</p>
+<!-- ---------- App shell ---------- -->
+<div id="app">
+  <div class="topbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg>
+      <input type="text" id="searchInput" placeholder="Search videos, channels, playlists…">
     </div>
-    <div class="feature-grid">
-      <div class="feature">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 19.5 5.5 19.5 11.5C19.5 16.5 16.2 20 12 21.5 7.8 20 4.5 16.5 4.5 11.5L4.5 5.5Z"/><path d="M8.5 12 11 14.5 16 9"/></svg></span>
-        <h3>Core Moderation</h3><p>Kick, ban, softban, massban, tempban, timeout, warn, and private mod notes — every action requires the matching Discord permission.</p><a class="jump" href="#cat-moderation">View commands →</a>
-      </div>
-      <div class="feature alt">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg></span>
-        <h3>Case History</h3><p>Every mod action gets a numbered case automatically. Pull a member's full record with <code>/cases</code>, or one case by number with <code>/case</code>.</p><a class="jump" href="#cat-cases">View commands →</a>
-      </div>
-      <div class="feature">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="8.5" r="3.2"/><line x1="9.8" y1="10.8" x2="19.5" y2="20.5"/><line x1="14.8" y1="15.8" x2="17.2" y2="13.4"/><line x1="17.1" y1="18.1" x2="19.5" y2="15.7"/></svg></span>
-        <h3>Access Control</h3><p>Each server picks which roles can use the bot at all — server owners always have access, even before a role is set.</p><a class="jump" href="#cat-access">View commands →</a>
-      </div>
-      <div class="feature">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg></span>
-        <h3>Honeypot Trap</h3><p>Designate a decoy channel that legitimate members never use. Any account that posts there is soft-banned automatically, and the action is logged.</p><a class="jump" href="#cat-honeypot">View commands →</a>
-      </div>
-      <div class="feature alt">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"/></svg></span>
-        <h3>Media / Link Lock</h3><p>Restrict a channel to GIFs only — every other message is removed automatically. Exemptions can be granted through three independent allowlists.</p><a class="jump" href="#cat-medialock">View commands →</a>
-      </div>
-      <div class="feature">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="12" x2="12" y2="7"/><line x1="12" y1="12" x2="15.5" y2="14"/></svg></span>
-        <h3>Countdown Channels</h3><p>Post a one-off or self-updating countdown to any date you set — a live clock and progress bar in any channel you choose.</p><a class="jump" href="#cat-gta6">View commands →</a>
-      </div>
-      <div class="feature alt">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="8" r="3.2"/><path d="M4 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><line x1="18" y1="9" x2="18" y2="13"/><line x1="16" y1="11" x2="20" y2="11"/></svg></span>
-        <h3>Welcome Messages</h3><p>New members receive a custom embed with their avatar and the server banner, built from a message you write yourself using live placeholders.</p><a class="jump" href="#cat-welcome">View commands →</a>
-      </div>
-      <div class="feature">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><polyline points="7,9 10,12 7,15"/><line x1="12" y1="15" x2="16.5" y2="15"/></svg></span>
-        <h3>Logging &amp; Snipe</h3><p>Edits, deletions, and mod actions land in as many log channels as you want. Deleted images get reposted before Discord kills the link.</p><a class="jump" href="#cat-logging">View commands →</a>
-      </div>
-      <div class="feature alt">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2.5" x2="12" y2="5.5"/><line x1="12" y1="18.5" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5.5" y2="12"/><line x1="18.5" y1="12" x2="21.5" y2="12"/><line x1="5.4" y1="5.4" x2="7.5" y2="7.5"/><line x1="16.5" y1="16.5" x2="18.6" y2="18.6"/><line x1="5.4" y1="18.6" x2="7.5" y2="16.5"/><line x1="16.5" y1="7.5" x2="18.6" y2="5.4"/></svg></span>
-        <h3>Utility &amp; Info</h3><p>Server info, user lookups, avatars, ban lists, and a complete <code>/help</code> menu covering every command on this page.</p><a class="jump" href="#cat-utility">View commands →</a>
-      </div>
-      <div class="feature">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M10.5 9.5 15 12 10.5 14.5Z" fill="currentColor" stroke="none"/></svg></span>
-        <h3>Clip Competition</h3><p>Members submit clips, mods Accept or Deny them from an optional review queue, and approved clips get ✅/❌ voting with a live leaderboard.</p><a class="jump" href="#cat-clip">View commands →</a>
-      </div>
-      <div class="feature alt">
-        <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 13.6 8.8 18.5 9.1 14.7 12.1 16 17 12 14.1 8 17 9.3 12.1 5.5 9.1 10.4 8.8Z"/></svg></span>
-        <h3>YouTube Notifications</h3><p>Watches a YouTube channel and posts an announcement the moment it goes live, schedules a stream, or uploads a new video — on its own polling loop.</p><a class="jump" href="#cat-youtube">View commands →</a>
-      </div>
+    <div class="topbar-right">
+      <span id="userTag" class="mono"></span>
+      <button class="pill sm" id="authBtn">Sign in with Google</button>
     </div>
   </div>
-</section>
 
-<!-- ============ SETUP ============ -->
-<section id="setup">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Getting started</span>
-      <h2>Set up in four steps</h2>
-      <p>The bot doesn't need to be visible to be effective — it runs quietly in the background from the moment it's invited.</p>
-    </div>
-    <div class="steps">
-      <div class="step"><span class="num-pill"></span><h3>Invite the bot</h3><p>Hit "Add to Server" up top. It asks for Administrator so every moderation action actually works — no partial permissions to debug later.</p></div>
-      <div class="step"><span class="num-pill"></span><h3>Set an allowed role</h3><p>Run <code>/addallowedrole</code> and pick your mod/admin role. Until you do, only the server owner can run commands.</p></div>
-      <div class="step"><span class="num-pill"></span><h3>Wire up logging</h3><p>Add a channel with <code>/addmodlog</code> and <code>/addimagelog</code> so every case, edit, and deletion has somewhere to land.</p></div>
-      <div class="step"><span class="num-pill"></span><h3>Turn on what you need</h3><p>Welcome channels, a honeypot, the media lock, countdowns — all optional, all one slash command away.</p></div>
-    </div>
-
-    <div class="terminal">
-      <div class="terminal-head">
-        <span class="label">Quick setup sequence</span>
-        <button class="chip" id="copySetup" type="button">Copy</button>
-      </div>
-      <div class="terminal-body" id="setupCmds">
-        <div class="line"><span class="comment">// grant your staff role access to the bot</span></div>
-        <div class="line"><span class="prompt">›</span>/addallowedrole role:@Moderators</div>
-        <div class="line"><span class="comment">// send mod actions and edits to a log channel</span></div>
-        <div class="line"><span class="prompt">›</span>/addmodlog channel:#mod-logs</div>
-        <div class="line"><span class="comment">// repost deleted images before Discord expires the link</span></div>
-        <div class="line"><span class="prompt">›</span>/addimagelog channel:#deleted-images</div>
-      </div>
-    </div>
+  <div class="sidebar">
+    <button class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"/></svg>
+      Home
+    </button>
+    <button class="nav-item" data-view="search">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg>
+      Search
+    </button>
+    <button class="nav-item" data-view="liked">
+      <svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.9C.6 8.4 2 5 5.4 5c1.9 0 3.3 1 4.1 2.4C10.3 6 11.7 5 13.6 5 17 5 18.4 8.4 21.5 12.1 19 16.65 12 21 12 21z"/></svg>
+      Liked Videos
+    </button>
+    <button class="nav-item" data-view="queue">
+      <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="16" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="6" x2="19" y2="13.6" stroke="currentColor" stroke-width="2"/></svg>
+      Queue
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Your Playlists</div>
+    <div id="playlistList"><div class="empty-state" style="padding:8px 14px; font-size:12.5px;">Sign in to see these.</div></div>
   </div>
-</section>
 
-<!-- ============ ACCESS / EXEMPTIONS ============ -->
-<section id="access">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Permissions</span>
-      <h2>Nothing overrides, everything stacks</h2>
-      <p>Server settings, hardcoded fallbacks, and text-file allowlists never fight each other — being on any one list is always enough.</p>
-    </div>
-    <div class="callout">
-      <h4><span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 21 19H3Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="16.6" r="0.6" fill="currentColor" stroke="none"/></svg></span>Who's exempt from what</h4>
-      <p>Command access, the media lock, and log/welcome/countdown channels are each controlled by up to three sources at once. Any single match is enough — nothing needs to agree with anything else:</p>
-      <ul>
-        <li><strong>Per-server slash commands</strong> — <code>/addallowedrole</code>, <code>/medialockallowuser</code>, <code>/addmodlog</code>, and friends. Take effect immediately, no restart.</li>
-        <li><strong>Hardcoded fallback lists</strong> — built into the bot for its original servers, so they keep working with zero setup.</li>
-        <li><strong>Text files next to the bot</strong> — edit a plain <code>.txt</code> file, one ID per line, and it's picked up on the next relevant event.</li>
-      </ul>
-      <div class="hint">Not sure if someone's exempt from the media lock right now? <code>/checkmedialockexempt</code> tells you exactly which rule matched.</div>
-    </div>
+  <div class="main" id="main"></div>
 
-    <div class="matrix-wrap">
-      <table class="matrix">
-        <caption>Exemption sources by system</caption>
-        <thead>
-          <tr><th>System</th><th>Slash commands</th><th>Hardcoded fallback</th><th>Text file</th><th>Check command</th></tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">Command access</th><td><span class="yes">Y</span></td><td><span class="yes">Y</span></td><td><span class="no">—</span></td><td><code>/listallowedroles</code></td></tr>
-          <tr><th scope="row">Media lock</th><td><span class="yes">Y</span></td><td><span class="yes">Y</span></td><td><span class="yes">Y</span></td><td><code>/checkmedialockexempt</code></td></tr>
-          <tr><th scope="row">Mod log routing</th><td><span class="yes">Y</span></td><td><span class="yes">Y</span></td><td><span class="no">—</span></td><td><code>/checklogconfig</code></td></tr>
-          <tr><th scope="row">Welcome channels</th><td><span class="yes">Y</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><code>/listwelcomechannels</code></td></tr>
-          <tr><th scope="row">Countdown channels</th><td><span class="yes">Y</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><code>/listgta6channels</code></td></tr>
-          <tr><th scope="row">Youtube access</th><td><span class="yes">Y</span></td><td><span class="yes">Y</span></td><td><span class="no">—</span></td><td><code>/youtubestatus</code></td></tr>
-
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- ============ COMMANDS ============ -->
-<section id="commands">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Reference</span>
-      <h2>Every command</h2>
-      <p>Search by name, or tap a category below. Commands marked with a permission require that Discord permission (or an allowed role) to run.</p>
-    </div>
-
-    <div class="cmd-controls">
-      <div class="search-box">
-        <input type="text" id="cmdSearch" placeholder="Search commands, e.g. 'ban', 'welcome', 'gif'…">
+  <div class="player-bar">
+    <div class="np-meta">
+      <div class="np-video-wrap"><div id="ytPlayer"></div></div>
+      <div class="np-text">
+        <div class="np-name" id="npName">Nothing playing</div>
+        <div class="np-artist" id="npArtist"></div>
       </div>
     </div>
-    <div class="cat-pills" id="catPills"></div>
-    <p class="cmd-count" id="cmdCount"></p>
-    <div id="flyerWall"></div>
-  </div>
-</section>
-
-<!-- ============ FAQ ============ -->
-<section id="faq">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Questions</span>
-      <h2>Frequently asked</h2>
-      <p>The details that come up most when a server first sets up ysxj.</p>
-    </div>
-    <div class="faq-list" id="faqList">
-      <div class="faq-item">
-        <button class="faq-q" type="button">Does the bot really need Administrator? <span class="chevron">▾</span></button>
-        <div class="faq-a"><p>It needs the underlying permissions individual commands use — bans, timeouts, channel management, and role management. Administrator is the simplest way to grant all of them at once and avoid a command silently failing because one permission was missed.</p></div>
+    <div class="np-center">
+      <div class="np-controls">
+        <button class="np-ctrl" id="prevBtn" title="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="np-ctrl play" id="playBtn" title="Play/Pause"><svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+        <button class="np-ctrl" id="nextBtn" title="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg></button>
       </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button">What happens if I remove the honeypot channel? <span class="chevron">▾</span></button>
-        <div class="faq-a"><p>Run <code>/removehoneypot</code> first — this disables the trap without touching the channel. The channel itself is never deleted automatically, so you're free to repurpose or remove it separately afterward.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button">Can I use more than one mod log channel? <span class="chevron">▾</span></button>
-        <div class="faq-a"><p>Yes. Add as many as you want with <code>/addmodlog</code> — every case, edit, and deletion is posted to all of them. <code>/listmodlogs</code> shows the current list, and <code>/checklogconfig</code> shows exactly which channel a given event resolved to.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button">How do text-file allowlists get updated? <span class="chevron">▾</span></button>
-        <div class="faq-a"><p>They're plain <code>.txt</code> files stored next to the bot, one Discord ID per line. Editing the file directly takes effect on the next relevant event — no restart required.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button">What happens when a tempban expires? <span class="chevron">▾</span></button>
-        <div class="faq-a"><p>The bot automatically unbans the member when the timer runs out and logs the expiry as its own case entry, so the history stays complete without any follow-up command.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button">Can I run more than one countdown at once? <span class="chevron">▾</span></button>
-        <div class="faq-a"><p>Yes — add as many countdown channels as you like, each with its own target date. <code>/listgta6channels</code> shows every one currently running.</p></div>
+      <div class="np-progress">
+        <span id="elapsed">0:00</span>
+        <div class="np-bar-track" id="barTrack"><div class="np-bar-fill" id="barFill"></div></div>
+        <span id="duration">0:00</span>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- ============ CHANGELOG ============ -->
-<section id="changelog">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">History</span>
-      <h2>Changelog</h2>
-      <p>What's been added recently.</p>
-    </div>
-    <div class="changelog">
-      <div class="change-entry">
-        <div class="change-head">
-          <span class="change-version">v2.5.0</span>
-          <span class="change-date">September 5, 2026</span>
-        </div>
-        <ul>
-          <li>Added YouTube notifications — announces new uploads, scheduled streams, and going-live events to a channel you configure<span class="change-tag">New</span></li>
-          <li><code>/youtubestatus</code> and <code>/checkyoutube</code> added to the command reference</li>
-        </ul>
-      </div>
-      <div class="change-entry">
-        <div class="change-head">
-          <span class="change-version">v2.4.0</span>
-          <span class="change-date">August 31, 2026</span>
-        </div>
-        <ul>
-          <li>Added the Clip Competition system — submissions, an optional Accept/Deny review queue, ✅/❌ voting, and a live leaderboard<span class="change-tag">New</span></li>
-          <li><code>/startcompetition</code>, <code>/endcompetition</code>, <code>/leaderboard</code>, and <code>/reviewqueue</code> added to the command reference</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ CTA ============ -->
-<div class="cta-band">
-  <div class="cta-inner">
-    <h2>Ready to add it?</h2>
-    <p>One invite covers every feature. Administrator permission, an owner-proof access system, and a full case history from day one.</p>
-    <div class="pill-row">
-      <a class="pill solid" href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Invite ysxj</a>
-      <a class="pill" href="#commands">See all commands</a>
+    <div class="np-right">
+      <span class="np-badge" id="acctBadge">Ready for anyone</span>
+      <input type="range" class="vol" id="volSlider" min="0" max="100" value="70">
     </div>
   </div>
 </div>
 
-</main>
-
-<footer>
-  <div class="wrap">
-    <div class="foot-card">
-      <div class="foot-grid">
-        <div class="foot-col">
-          <h4>ysxj</h4>
-          <p>A Discord moderation bot with case history, access control, and automated spam defenses, built and maintained by VOQCL.</p>
-        </div>
-        <div class="foot-col">
-          <h4>Product</h4>
-          <ul>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#setup">Setup</a></li>
-            <li><a href="#commands">Commands</a></li>
-            <li><a href="#changelog">Changelog</a></li>
-          </ul>
-        </div>
-        <div class="foot-col">
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="#access">Permissions</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="redirect.html">Contact</a></li>
-          </ul>
-        </div>
-        <div class="foot-col">
-          <h4>Community</h4>
-          <ul>
-            <li><a href="https://discord.gg/3hkfHPwc2t" target="_blank" rel="noopener">Support server</a></li>
-            <li><a href="https://discord.com/oauth2/authorize?client_id=1540100765903753288&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" rel="noopener">Invite the bot</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="foot-bottom">
-        <div class="brand">ysxj — built by VOQCL</div>
-        <div class="small">Run /help in Discord any time for this same list, without leaving the app.</div>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<button id="backToTop" aria-label="Back to top" type="button">↑</button>
+<div class="toast" id="toast"></div>
 
 <script>
-  const CATEGORIES = [
-    { key:"moderation", label:"Moderation", desc:"Kicks, bans, timeouts, warnings and notes.", cmds:[
-      ["kick","Kick Members","Kick a member out, with a reason logged to their case history.","/kick member:<user> reason:<text>","/kick member:@Alex reason:Spamming links"],
-      ["ban","Ban Members","Ban a member from the server, with a reason.","/ban member:<user> reason:<text>","/ban member:@Alex reason:Repeated harassment"],
-      ["unban","Ban Members","Unban a user by their raw Discord user ID.","/unban user_id:<id>","/unban user_id:482910233871"],
-      ["softban","Ban Members","Ban then immediately unban, purging their recent messages without an actual ban.","/softban member:<user> reason:<text>","/softban member:@Alex reason:Message purge"],
-      ["massban","Ban Members","Ban a batch of user IDs at once, space or comma separated.","/massban user_ids:<id id id…>","/massban user_ids:482910233871 501823741002"],
-      ["tempban","Ban Members","Ban for a set number of minutes, then auto-unban with no follow-up needed.","/tempban member:<user> minutes:<n> reason:<text>","/tempban member:@Alex minutes:1440 reason:Cooldown"],
-      ["timeout","Moderate Members","Discord-native timeout for a set number of minutes.","/timeout member:<user> minutes:<n> reason:<text>","/timeout member:@Alex minutes:10 reason:Cooling off"],
-      ["untimeout","Moderate Members","Remove an active timeout early.","/untimeout member:<user>","/untimeout member:@Alex"],
-      ["mute","Moderate Members","Timeout-based mute for a set duration, with a reason.","/mute member:<user> minutes:<n> reason:<text>","/mute member:@Alex minutes:30 reason:Off-topic"],
-      ["unmute","Moderate Members","Remove an active mute.","/unmute member:<user>","/unmute member:@Alex"],
-      ["warn","Moderate Members","Log a warning against a member and DM them the reason.","/warn member:<user> reason:<text>","/warn member:@Alex reason:Rule 3 violation"],
-      ["warnings","Moderate Members","View a member's full warning history.","/warnings member:<user>","/warnings member:@Alex"],
-      ["clearwarnings","Moderate Members","Wipe every warning on a member's record.","/clearwarnings member:<user>","/clearwarnings member:@Alex"],
-      ["note","Moderate Members","Add a private mod note — never shown to the member.","/note member:<user> text:<text>","/note member:@Alex text:Escalated twice this month"],
-      ["notes","Moderate Members","View a member's private mod notes.","/notes member:<user>","/notes member:@Alex"],
-      ["clearnotes","Moderate Members","Clear all private notes on a member.","/clearnotes member:<user>","/clearnotes member:@Alex"],
-      ["purge","Manage Messages","Bulk-delete 1–100 recent messages in the current channel.","/purge amount:<1-100>","/purge amount:50"],
-    ]},
-    { key:"cases", label:"Cases", desc:"Every action, numbered and pullable.", cmds:[
-      ["cases","Moderate Members","See a member's full moderation history, most recent first.","/cases member:<user>","/cases member:@Alex"],
-      ["case","Moderate Members","Pull up one specific case by its number.","/case number:<id>","/case number:482"],
-      ["deletecase","Moderate Members","Remove a case that was logged by mistake.","/deletecase number:<id>","/deletecase number:482"],
-    ]},
-    { key:"access", label:"Access", desc:"Who can run the bot at all.", cmds:[
-      ["addallowedrole","Administrator","Grant a role permission to use every bot command in this server.","/addallowedrole role:<role>","/addallowedrole role:@Moderators"],
-      ["removeallowedrole","Administrator","Revoke a role's access.","/removeallowedrole role:<role>","/removeallowedrole role:@Moderators"],
-      ["listallowedroles","Administrator","Show every role currently allowed to use the bot here.","/listallowedroles","/listallowedroles"],
-    ]},
-    { key:"honeypot", label:"Honeypot", desc:"A decoy channel that catches spam automatically.", cmds:[
-      ["sethoneypot","Administrator","Turn a channel into a trap — anyone who posts there is auto-softbanned.","/sethoneypot channel:<channel>","/sethoneypot channel:#free-nitro"],
-      ["removehoneypot","Administrator","Turn the honeypot off. The channel itself is left untouched.","/removehoneypot","/removehoneypot"],
-    ]},
-    { key:"medialock", label:"Media Lock", desc:"Gif-only lockdown and its exemptions.", cmds:[
-      ["medialock","Manage Messages","Turn the gif-only lock on or off, server-wide.","/medialock state:<on|off>","/medialock state:on"],
-      ["medialockstatus","None","Check whether the media/link lock is currently on or off.","/medialockstatus","/medialockstatus"],
-      ["medialockallowuser","Manage Messages","Let one user post any media/links even while the lock is on.","/medialockallowuser user:<user>","/medialockallowuser user:@Alex"],
-      ["medialockdisallowuser","Manage Messages","Remove a user from that per-server exemption list.","/medialockdisallowuser user:<user>","/medialockdisallowuser user:@Alex"],
-      ["medialocklistusers","Manage Messages","Show everyone allowlisted for the media lock here.","/medialocklistusers","/medialocklistusers"],
-      ["checkmedialockexempt","Manage Messages","Check if a member is exempt right now, and exactly which rule matched.","/checkmedialockexempt member:<user>","/checkmedialockexempt member:@Alex"],
-    ]},
-    { key:"gta6", label:"Countdowns", desc:"Self-updating countdown channels.", cmds:[
-      ["gta6","None","Post a one-off countdown right now. Anyone can run it.","/gta6","/gta6"],
-      ["addgta6channel","Administrator","Add a channel that keeps a self-updating countdown, refreshed every 5 minutes.","/addgta6channel channel:<channel>","/addgta6channel channel:#countdown"],
-      ["removegta6channel","Administrator","Stop updating and remove the countdown message.","/removegta6channel channel:<channel>","/removegta6channel channel:#countdown"],
-      ["listgta6channels","Administrator","See which channels have an active countdown.","/listgta6channels","/listgta6channels"],
-    ]},
-    { key:"welcome", label:"Welcome", desc:"Greet new members automatically.", cmds:[
-      ["addwelcomechannel","Administrator","Add a channel that gets a welcome embed for every new member.","/addwelcomechannel channel:<channel>","/addwelcomechannel channel:#welcome"],
-      ["removewelcomechannel","Administrator","Stop posting welcome embeds in a specific channel.","/removewelcomechannel channel:<channel>","/removewelcomechannel channel:#welcome"],
-      ["listwelcomechannels","Administrator","Show every channel currently configured for welcomes.","/listwelcomechannels","/listwelcomechannels"],
-      ["setwelcomemessage","Administrator","Customize the welcome text with {member}, {server}, and {count}.","/setwelcomemessage text:<text>","/setwelcomemessage text:Welcome {member} to {server}! You're member #{count}."],
-      ["testwelcome","Administrator","Preview the welcome embed as it'd look for you, no one needs to actually join.","/testwelcome","/testwelcome"],
-    ]},
-    { key:"channels", label:"Channels & Voice", desc:"Locks, slowmode, roles, and voice control.", cmds:[
-      ["lock","Manage Channels","Lock a channel so @everyone can't send messages.","/lock channel:<channel>","/lock channel:#general"],
-      ["unlock","Manage Channels","Unlock a channel again.","/unlock channel:<channel>","/unlock channel:#general"],
-      ["slowmode","Manage Channels","Set a channel's slowmode delay, 0–21600 seconds.","/slowmode seconds:<0-21600> channel:<channel>","/slowmode seconds:30 channel:#general"],
-      ["nuke","Manage Channels","Clone the channel and delete the original, wiping its history.","/nuke channel:<channel>","/nuke channel:#general"],
-      ["addrole","Manage Roles","Add a role to a member.","/addrole member:<user> role:<role>","/addrole member:@Alex role:@Verified"],
-      ["removerole","Manage Roles","Remove a role from a member.","/removerole member:<user> role:<role>","/removerole member:@Alex role:@Verified"],
-      ["nickname","Manage Nicknames","Change a member's nickname.","/nickname member:<user> name:<text>","/nickname member:@Alex name:Alex W."],
-      ["resetnickname","Manage Nicknames","Reset a nickname back to their username.","/resetnickname member:<user>","/resetnickname member:@Alex"],
-      ["voicekick","Move Members","Disconnect a member from their current voice channel.","/voicekick member:<user>","/voicekick member:@Alex"],
-      ["voicemute","Mute Members","Server-mute a member in voice channels.","/voicemute member:<user>","/voicemute member:@Alex"],
-      ["voiceunmute","Mute Members","Remove a member's voice server-mute.","/voiceunmute member:<user>","/voiceunmute member:@Alex"],
-      ["moveuser","Move Members","Move a member to a different voice channel.","/moveuser member:<user> channel:<voice channel>","/moveuser member:@Alex channel:General Voice"],
-    ]},
-    { key:"logging", label:"Logging & Snipe", desc:"Where actions and deletions land.", cmds:[
-      ["addmodlog","Administrator","Add a channel for mod actions, edits, and deletions. Add more than one.","/addmodlog channel:<channel>","/addmodlog channel:#mod-logs"],
-      ["removemodlog","Administrator","Remove a channel from the mod log list.","/removemodlog channel:<channel>","/removemodlog channel:#mod-logs"],
-      ["listmodlogs","Administrator","Show every channel currently receiving mod logs.","/listmodlogs","/listmodlogs"],
-      ["addimagelog","Administrator","Add a channel that deleted images get reposted to.","/addimagelog channel:<channel>","/addimagelog channel:#deleted-images"],
-      ["removeimagelog","Administrator","Remove a channel from the image log list.","/removeimagelog channel:<channel>","/removeimagelog channel:#deleted-images"],
-      ["listimagelogs","Administrator","Show every channel currently receiving deleted images.","/listimagelogs","/listimagelogs"],
-      ["checklogconfig","Administrator","See exactly which channels mod_log/image_log resolve to, and why.","/checklogconfig","/checklogconfig"],
-      ["snipe","None","Show the last deleted message in this (or another) channel.","/snipe channel:<channel optional>","/snipe channel:#general"],
-      ["editsnipe","None","Show the last edited message in this (or another) channel.","/editsnipe channel:<channel optional>","/editsnipe channel:#general"],
-    ]},
-    { key:"clip", label:"Clip Competition", desc:"Submit, review, vote, and crown a winner.", cmds:[
-      ["startcompetition","Manage Server","Open submissions — clears any leftover clips/review queue from last time and announces the start.","/startcompetition","/startcompetition"],
-      ["endcompetition","Manage Server","Close submissions, post final standings, and announce + repost the winning clip.","/endcompetition","/endcompetition"],
-      ["leaderboard","None","Show live ✅/❌ standings for every tracked clip, anytime.","/leaderboard","/leaderboard"],
-      ["reviewqueue","Manage Server","See every clip currently waiting for a mod to Accept or Deny.","/reviewqueue","/reviewqueue"],
-    ]},
-    { key:"youtube", label:"YouTube", desc:"Live, upcoming, and upload announcements.", cmds:[
-      ["youtubestatus","None","Check whether YouTube monitoring is on, what channel it posts to, and the last known broadcast status.","/youtubestatus","/youtubestatus"],
-      ["checkyoutube","Manage Server","Force an immediate check instead of waiting for the next scheduled poll.","/checkyoutube","/checkyoutube"],
-    ]},
-    { key:"utility", label:"Utility", desc:"Info, lookups, and the help menu.", cmds:[
-      ["ping","None","Check the bot is online and see its latency.","/ping","/ping"],
-      ["modpanel","Moderate Members","Quick reference embed of the commands mods use day-to-day.","/modpanel","/modpanel"],
-      ["userinfo","None","Show join date, roles, and account age for a member.","/userinfo member:<user>","/userinfo member:@Alex"],
-      ["serverinfo","None","Show owner, member count, channels, and roles for this server.","/serverinfo","/serverinfo"],
-      ["avatar","None","Show a member's avatar full-size.","/avatar member:<user>","/avatar member:@Alex"],
-      ["banlist","Ban Members","List every currently banned user, with reasons where given.","/banlist","/banlist"],
-      ["help","None","A full dropdown menu of every category on this page, in Discord.","/help","/help"],
-    ]},
-  ];
+(function(){
+  // ======================================================================
+  // SITE OWNER SETUP:
+  // 1. In Google Cloud Console, enable the "YouTube Data API v3" and create
+  //    an API key. Paste it below as API_KEY. This is all that's needed
+  //    for search, browsing, and playback — no visitor needs an account.
+  // 2. Optional — to let visitors sign in with their own Google account and
+  //    see their Liked Videos / Playlists / use the Like button, also
+  //    create an OAuth 2.0 Client ID (type: Web application), add this
+  //    page's exact URL as an Authorized JavaScript origin, and paste the
+  //    Client ID below as OAUTH_CLIENT_ID. Leave it blank to skip this.
+  // ======================================================================
+  const API_KEY = 'AIzaSyCtuq413bq7_VIcwQ-brpj3ZeJjf3X7RQY';
+  const OAUTH_CLIENT_ID = '651082888353-9fqul8tjrsosmsvam7kuv3sveunj2n0d.apps.googleusercontent.com';
 
-  const wall = document.getElementById('flyerWall');
-  const catPills = document.getElementById('catPills');
-  const totalCmds = CATEGORIES.reduce((n,c)=>n+c.cmds.length,0);
+  const OAUTH_SCOPE = 'https://www.googleapis.com/auth/youtube';
+  const API_BASE = 'https://www.googleapis.com/youtube/v3';
 
-  CATEGORIES.forEach((cat) => {
-    const pill = document.createElement('button');
-    pill.className = 'cat-pill';
-    pill.dataset.target = `cat-${cat.key}`;
-    pill.innerHTML = `${cat.label} <span class="n">${cat.cmds.length}</span>`;
-    catPills.appendChild(pill);
+  const $ = (id) => document.getElementById(id);
+  const gate = $('gate'), app = $('app');
 
-    const flyer = document.createElement('div');
-    flyer.className = 'flyer';
-    flyer.id = `cat-${cat.key}`;
-    flyer.dataset.cat = cat.key;
-    flyer.innerHTML = `
-      <button class="flyer-head" aria-expanded="false">
-        <div>
-          <h3>${cat.label}<span class="badge">${cat.cmds.length}</span></h3>
-          <span class="cat-desc">${cat.desc}</span>
-        </div>
-        <span class="chevron">▾</span>
-      </button>
-      <div class="flyer-body">
-        <div class="flyer-body-inner">
-          ${cat.cmds.map(([name,perm,desc,usage,example]) => `
-            <div class="cmd-card" data-name="${name}" data-text="${(name+' '+perm+' '+desc).toLowerCase()}">
-              <div class="cmd-top">
-                <div class="cmd-name">${name}</div>
-                <button class="chip copy-cmd" type="button" data-copy="${usage.replace(/"/g,'&quot;')}">Copy</button>
-              </div>
-              <span class="cmd-perm">${perm}</span>
-              <p class="desc">${desc}</p>
-              <div class="cmd-usage">${usage}</div>
-              <div class="cmd-example"><b>Example:</b> ${example}</div>
-            </div>`).join('')}
-        </div>
-      </div>`;
-    wall.appendChild(flyer);
+  function toast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+  function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtTime(sec){
+    sec = Math.max(0, Math.floor(sec));
+    const m = Math.floor(sec/60), s = sec%60;
+    return m+':'+String(s).padStart(2,'0');
+  }
+  function fmtDuration(iso){
+    // ISO 8601 duration, e.g. PT4M13S
+    const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso||'');
+    if(!m) return '';
+    const h=+(m[1]||0), mi=+(m[2]||0), s=+(m[3]||0);
+    const total = h*3600+mi*60+s;
+    if(h) return h+':'+String(mi).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    return fmtTime(total);
+  }
 
-    flyer.querySelector('.flyer-head').addEventListener('click', () => {
-      const isOpen = flyer.classList.contains('open');
-      flyer.classList.toggle('open', !isOpen);
-      flyer.querySelector('.flyer-head').setAttribute('aria-expanded', String(!isOpen));
+  // ---------------- Optional Google sign-in (Google Identity Services) ----------------
+  let accessToken = null;
+  let tokenClient = null;
+  let signedIn = false;
+
+  function loadGis(){
+    return new Promise((resolve) => {
+      if(window.google && window.google.accounts){ resolve(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = resolve;
+      document.head.appendChild(s);
     });
+  }
 
-    pill.addEventListener('click', () => {
-      catPills.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      flyer.classList.add('open');
-      flyer.querySelector('.flyer-head').setAttribute('aria-expanded','true');
-      flyer.scrollIntoView({ behavior:'smooth', block:'start' });
+  async function initAuth(){
+    if(!OAUTH_CLIENT_ID) return;
+    await loadGis();
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: OAUTH_CLIENT_ID,
+      scope: OAUTH_SCOPE,
+      callback: (resp) => {
+        if(resp.error){ toast('Sign-in failed: ' + resp.error); return; }
+        accessToken = resp.access_token;
+        signedIn = true;
+        onSignedIn();
+      }
     });
-  });
+    $('authBtn').classList.remove('hidden');
+  }
 
-  wall.addEventListener('click', (e) => {
-    const btn = e.target.closest('.copy-cmd');
-    if(!btn) return;
-    const text = btn.dataset.copy;
-    if(navigator.clipboard){
-      navigator.clipboard.writeText(text).then(() => flashCopied(btn));
-    } else {
-      flashCopied(btn);
+  function beginSignIn(){
+    if(!tokenClient){ toast('Sign-in is not set up on this page yet.'); return; }
+    tokenClient.requestAccessToken({ prompt: signedIn ? '' : 'consent' });
+  }
+  function signOut(){
+    if(accessToken && window.google){
+      google.accounts.oauth2.revoke(accessToken, () => {});
     }
-  });
-  function flashCopied(btn){
-    const original = btn.textContent;
-    btn.textContent = 'Copied';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1200);
+    accessToken = null; signedIn = false;
+    $('userTag').textContent = '';
+    $('authBtn').textContent = 'Sign in with Google';
+    $('authBtn').onclick = beginSignIn;
+    $('playlistList').innerHTML = '<div class="empty-state" style="padding:8px 14px; font-size:12.5px;">Sign in to see these.</div>';
+    likedCache.clear();
+    if(currentView === 'liked' || currentView === 'queue') switchView('home');
+    toast('Signed out');
   }
 
-  document.getElementById('copySetup').addEventListener('click', (e) => {
-    const lines = Array.from(document.querySelectorAll('#setupCmds .line'))
-      .map(l => l.textContent.replace(/^›/,'').trim())
-      .filter(t => !t.startsWith('//'));
-    const text = lines.join('\n');
-    const btn = e.currentTarget;
-    if(navigator.clipboard){
-      navigator.clipboard.writeText(text).then(() => flashCopied(btn));
-    } else {
-      flashCopied(btn);
+  async function onSignedIn(){
+    $('authBtn').textContent = 'Sign out';
+    $('authBtn').onclick = signOut;
+    try{
+      const me = await api('/channels', { part:'snippet', mine:'true' }, true);
+      const ch = me.items && me.items[0];
+      $('userTag').textContent = ch ? ch.snippet.title : 'Signed in';
+    }catch(e){ $('userTag').textContent = 'Signed in'; }
+    loadPlaylists();
+    toast('Signed in');
+    if(currentView === 'liked') openLiked();
+  }
+
+  // ---------------- API helper ----------------
+  async function api(path, params={}, needsAuth=false){
+    if(needsAuth && !accessToken) throw new Error('sign in required');
+    const usp = new URLSearchParams(params);
+    if(!accessToken) usp.set('key', API_KEY);
+    const headers = {};
+    if(accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+    const res = await fetch(API_BASE + path + '?' + usp.toString(), { headers });
+    const data = await res.json();
+    if(!res.ok){ throw new Error((data && data.error && data.error.message) || res.statusText); }
+    return data;
+  }
+
+  // ---------------- YouTube IFrame player ----------------
+  let ytPlayer = null, playerReady = false;
+  let queue = [];        // array of video items
+  let queueIndex = -1;
+  let progressTimer = null;
+  let curDuration = 0;
+  let likedCache = new Map();
+
+  function loadIframeApi(){
+    return new Promise((resolve) => {
+      if(window.YT && window.YT.Player){ resolve(); return; }
+      window.onYouTubeIframeAPIReady = resolve;
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(s);
+    });
+  }
+
+  async function initPlayer(){
+    await loadIframeApi();
+    ytPlayer = new YT.Player('ytPlayer', {
+      height: '100%', width: '100%',
+      playerVars: { rel: 0, modestbranding: 1, playsinline: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3 },
+      events: {
+        onReady: () => { playerReady = true; ytPlayer.setVolume(Number($('volSlider').value)); },
+        onStateChange: onPlayerStateChange
+      }
+    });
+  }
+
+  function onPlayerStateChange(e){
+    const state = e.data;
+    if(state === YT.PlayerState.PLAYING){
+      curDuration = ytPlayer.getDuration();
+      $('duration').textContent = fmtTime(curDuration);
+      setPlayIcon(true);
+      restartProgressTimer();
+    } else if(state === YT.PlayerState.PAUSED){
+      setPlayIcon(false);
+    } else if(state === YT.PlayerState.ENDED){
+      nextTrack();
     }
-  });
-
-  const allFlyers = Array.from(document.querySelectorAll('.flyer'));
-  const searchInput = document.getElementById('cmdSearch');
-  const cmdCount = document.getElementById('cmdCount');
-
-  function applySearch(){
-    const q = searchInput.value.trim().toLowerCase();
-    let visible = 0;
-    allFlyers.forEach(flyer => {
-      let flyerHasMatch = false;
-      flyer.querySelectorAll('.cmd-card').forEach(card => {
-        const show = q === '' || card.dataset.text.includes(q);
-        card.dataset.hidden = show ? 'false' : 'true';
-        if(show){ visible++; flyerHasMatch = true; }
-      });
-      flyer.dataset.hidden = flyerHasMatch ? 'false' : 'true';
-      if(q !== '' && flyerHasMatch){ flyer.classList.add('open'); }
-      if(q === ''){ flyer.classList.remove('open'); }
-    });
-    cmdCount.innerHTML = q === ''
-      ? `<strong>${totalCmds}</strong> commands across <strong>${CATEGORIES.length}</strong> categories — tap a pill to jump to it.`
-      : `Showing <strong>${visible}</strong> of ${totalCmds} commands`;
   }
-  searchInput.addEventListener('input', applySearch);
-  applySearch();
-
-  if('IntersectionObserver' in window){
-    const pills = Array.from(catPills.querySelectorAll('.cat-pill'));
-    const spy = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const pill = pills.find(p => p.dataset.target === entry.target.id);
-        if(!pill) return;
-        if(entry.isIntersecting){
-          pills.forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-        }
-      });
-    }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
-    allFlyers.forEach(f => spy.observe(f));
+  function setPlayIcon(playing){
+    $('playIcon').innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  }
+  function restartProgressTimer(){
+    if(progressTimer) clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      if(!ytPlayer || !ytPlayer.getCurrentTime) return;
+      const t = ytPlayer.getCurrentTime();
+      const d = ytPlayer.getDuration() || curDuration;
+      $('elapsed').textContent = fmtTime(t);
+      $('barFill').style.width = (d ? (t/d)*100 : 0) + '%';
+    }, 500);
   }
 
-  document.querySelectorAll('.faq-item .faq-q').forEach(q => {
-    q.addEventListener('click', () => {
-      const item = q.closest('.faq-item');
-      item.classList.toggle('open');
+  function playVideoAt(index){
+    if(index < 0 || index >= queue.length) return;
+    queueIndex = index;
+    const v = queue[index];
+    if(!playerReady){ toast('Player is still loading — try again in a second.'); return; }
+    ytPlayer.loadVideoById(v.id);
+    $('npName').textContent = v.title;
+    $('npArtist').textContent = v.channelTitle;
+    renderQueueViewIfActive();
+  }
+  function playNow(video){
+    // insert right after current position and play it
+    queue.splice(queueIndex+1, 0, video);
+    playVideoAt(queueIndex+1);
+  }
+  function addToQueue(video){
+    queue.push(video);
+    toast('Added to queue');
+    if(currentView === 'queue') renderQueueView();
+  }
+  function nextTrack(){ if(queueIndex+1 < queue.length) playVideoAt(queueIndex+1); }
+  function prevTrack(){ if(queueIndex-1 >= 0) playVideoAt(queueIndex-1); }
+
+  async function toggleLike(video, btn){
+    if(!accessToken){ toast('Sign in with Google to like videos.'); return; }
+    const liked = likedCache.get(video.id);
+    try{
+      await api('/videos/rate', { id: video.id, rating: liked ? 'none' : 'like' }, true).catch(async () => {
+        // rate endpoint returns no JSON body on success; ignore parse errors by re-checking
+      });
+      likedCache.set(video.id, !liked);
+      btn.classList.toggle('liked', !liked);
+    }catch(e){ toast('Could not update like: ' + e.message); }
+  }
+
+  async function checkLiked(ids){
+    if(!accessToken || !ids.length) return;
+    try{
+      const data = await api('/videos/getRating', { id: ids.join(',') }, true);
+      (data.items||[]).forEach(it => likedCache.set(it.videoId, it.rating === 'like'));
+    }catch(e){}
+  }
+
+  function heartIcon(filled){
+    return filled
+      ? '<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.9C.6 8.4 2 5 5.4 5c1.9 0 3.3 1 4.1 2.4C10.3 6 11.7 5 13.6 5 17 5 18.4 8.4 21.5 12.1 19 16.65 12 21 12 21z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.35-9.5-8.9C.6 8.4 2 5 5.4 5c1.9 0 3.3 1 4.1 2.4C10.3 6 11.7 5 13.6 5 17 5 18.4 8.4 21.5 12.1 19 16.65 12 21 12 21z"/></svg>';
+  }
+
+  // ---------------- Rendering: track rows ----------------
+  let renderedLists = {};
+  let listCounter = 0;
+
+  function trackRowHtml(video, idx, listId){
+    const liked = likedCache.get(video.id) || false;
+    return `<div class="track-row" data-list="${listId}" data-idx="${idx}">
+      <span class="idx">${idx+1}</span>
+      <button class="row-play" data-action="play">${'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'}</button>
+      <img src="${video.thumb||''}" alt="">
+      <div class="t-main">
+        <div class="t-name">${esc(video.title)}</div>
+        <div class="t-artist">${esc(video.channelTitle||'')}</div>
+      </div>
+      <button class="row-btn ${liked?'liked':''}" data-action="like" title="Like this video">${heartIcon(liked)}</button>
+      <button class="row-btn" data-action="queue" title="Add to queue"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="16" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="6" x2="19" y2="13.6" stroke="currentColor" stroke-width="2"/></svg></button>
+      <span class="t-dur">${esc(video.duration||'')}</span>
+    </div>`;
+  }
+
+  function registerList(videos){
+    const id = 'l' + (++listCounter);
+    renderedLists[id] = { videos };
+    checkLiked(videos.map(v=>v.id).filter(Boolean).slice(0,50));
+    return id;
+  }
+
+  function wireTrackRowEvents(container){
+    container.addEventListener('click', (e) => {
+      const rowBtn = e.target.closest('[data-action]');
+      const row = e.target.closest('.track-row');
+      if(!row) return;
+      const listId = row.dataset.list;
+      const idx = Number(row.dataset.idx);
+      const list = renderedLists[listId];
+      if(!list) return;
+      const video = list.videos[idx];
+
+      if(rowBtn && rowBtn.dataset.action === 'like'){ toggleLike(video, rowBtn); return; }
+      if(rowBtn && rowBtn.dataset.action === 'queue'){ addToQueue(video); return; }
+
+      // play: load this list into the queue starting at idx
+      queue = list.videos.slice();
+      playVideoAt(idx);
     });
+  }
+
+  // ---------------- Data mapping helpers ----------------
+  function mapSearchVideo(item){
+    return {
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      channelId: item.snippet.channelId,
+      thumb: item.snippet.thumbnails && (item.snippet.thumbnails.medium||item.snippet.thumbnails.default).url,
+      duration: ''
+    };
+  }
+  function mapFullVideo(item){
+    return {
+      id: item.id,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      channelId: item.snippet.channelId,
+      thumb: item.snippet.thumbnails && (item.snippet.thumbnails.medium||item.snippet.thumbnails.default).url,
+      duration: item.contentDetails ? fmtDuration(item.contentDetails.duration) : ''
+    };
+  }
+  async function hydrateDurations(videos){
+    const ids = videos.map(v=>v.id).filter(Boolean);
+    if(!ids.length) return videos;
+    try{
+      const data = await api('/videos', { part:'contentDetails', id: ids.join(',') });
+      const byId = new Map((data.items||[]).map(it => [it.id, fmtDuration(it.contentDetails.duration)]));
+      videos.forEach(v => { if(byId.has(v.id)) v.duration = byId.get(v.id); });
+    }catch(e){}
+    return videos;
+  }
+
+  // ---------------- Views ----------------
+  let currentView = 'home';
+  const main = $('main');
+
+  function setActiveNav(view){
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+    document.querySelectorAll('.playlist-item').forEach(n => n.classList.remove('active'));
+  }
+
+  function renderSearchEmpty(){
+    main.innerHTML = `<h2 class="view-title">Search</h2><p class="view-sub">Find videos, channels, and playlists.</p><div class="empty-state">Start typing above to search.</div>`;
+  }
+
+  async function runSearch(q){
+    if(!q){ renderSearchEmpty(); return; }
+    main.innerHTML = `<h2 class="view-title">Results for "${esc(q)}"</h2><div class="empty-state">Searching…</div>`;
+    try{
+      const [videoData, channelData, playlistData] = await Promise.all([
+        api('/search', { part:'snippet', type:'video', maxResults:8, q }),
+        api('/search', { part:'snippet', type:'channel', maxResults:6, q }),
+        api('/search', { part:'snippet', type:'playlist', maxResults:6, q })
+      ]);
+
+      let html = `<h2 class="view-title">Results for "${esc(q)}"</h2>`;
+
+      if(videoData.items && videoData.items.length){
+        const videos = await hydrateDurations(videoData.items.map(mapSearchVideo));
+        const listId = registerList(videos);
+        html += `<div class="section-label">Videos</div><div id="${listId}-wrap">` +
+          videos.map((v,i)=>trackRowHtml(v,i,listId)).join('') + `</div>`;
+      }
+      if(channelData.items && channelData.items.length){
+        html += `<div class="section-label">Channels</div><div class="card-grid">` +
+          channelData.items.map(c => `<div class="art-card round" data-channel="${c.id.channelId}">
+            <img src="${c.snippet.thumbnails.medium.url}">
+            <div class="name">${esc(c.snippet.channelTitle)}</div><div class="sub">Channel</div></div>`).join('') + `</div>`;
+      }
+      if(playlistData.items && playlistData.items.length){
+        html += `<div class="section-label">Playlists</div><div class="card-grid">` +
+          playlistData.items.map(p => `<div class="art-card" data-playlist="${p.id.playlistId}">
+            <img src="${p.snippet.thumbnails.medium.url}">
+            <div class="name">${esc(p.snippet.title)}</div><div class="sub">By ${esc(p.snippet.channelTitle)}</div></div>`).join('') + `</div>`;
+      }
+      if(!(videoData.items&&videoData.items.length) && !(channelData.items&&channelData.items.length) && !(playlistData.items&&playlistData.items.length)){
+        html += `<div class="empty-state">No results.</div>`;
+      }
+      main.innerHTML = html;
+      wireTrackRowEvents(main);
+      main.querySelectorAll('[data-channel]').forEach(el => el.addEventListener('click', () => openChannel(el.dataset.channel)));
+      main.querySelectorAll('[data-playlist]').forEach(el => el.addEventListener('click', () => openPlaylist(el.dataset.playlist)));
+    }catch(e){
+      main.innerHTML = `<div class="empty-state">Search failed: ${esc(e.message)}</div>`;
+    }
+  }
+
+  async function openHome(){
+    setActiveNav('home');
+    main.innerHTML = `<h2 class="view-title">Trending</h2><p class="view-sub">Popular right now.</p><div class="empty-state">Loading…</div>`;
+    try{
+      const data = await api('/videos', { part:'snippet,contentDetails', chart:'mostPopular', maxResults:20, regionCode:'US' });
+      const videos = (data.items||[]).map(mapFullVideo);
+      const listId = registerList(videos);
+      main.innerHTML = `<h2 class="view-title">Trending</h2><p class="view-sub">Popular right now.</p>` +
+        videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      wireTrackRowEvents(main);
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load trending videos: ${esc(e.message)}</div>`; }
+  }
+
+  async function openChannel(id){
+    setActiveNav(null);
+    main.innerHTML = `<div class="empty-state">Loading channel…</div>`;
+    try{
+      const chData = await api('/channels', { part:'snippet,contentDetails,statistics', id });
+      const channel = chData.items[0];
+      const uploadsId = channel.contentDetails.relatedPlaylists.uploads;
+      const itemsData = await api('/playlistItems', { part:'snippet', playlistId: uploadsId, maxResults: 20 });
+      const videos = await hydrateDurations(itemsData.items.map(it => ({
+        id: it.snippet.resourceId.videoId,
+        title: it.snippet.title,
+        channelTitle: channel.snippet.title,
+        thumb: it.snippet.thumbnails && (it.snippet.thumbnails.medium||it.snippet.thumbnails.default).url,
+        duration: ''
+      })));
+      const listId = registerList(videos);
+      main.innerHTML = `<div class="playlist-header">
+          <img src="${channel.snippet.thumbnails.medium.url}" style="border-radius:999px; width:124px; height:124px;">
+          <div><div class="mono ph-meta">Channel · ${Number(channel.statistics.subscriberCount||0).toLocaleString()} subscribers</div><h1 class="view-title">${esc(channel.snippet.title)}</h1></div>
+        </div>
+        <div class="section-label">Uploads</div>` + videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      wireTrackRowEvents(main);
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load channel: ${esc(e.message)}</div>`; }
+  }
+
+  async function openPlaylist(id){
+    setActiveNav(null);
+    document.querySelectorAll('.playlist-item').forEach(n => n.classList.toggle('active', n.dataset.id === id));
+    main.innerHTML = `<div class="empty-state">Loading playlist…</div>`;
+    try{
+      const plData = await api('/playlists', { part:'snippet,contentDetails', id });
+      const pl = plData.items[0];
+      const itemsData = await api('/playlistItems', { part:'snippet', playlistId:id, maxResults:50 });
+      const videos = await hydrateDurations(itemsData.items.filter(it => it.snippet.resourceId && it.snippet.resourceId.videoId).map(it => ({
+        id: it.snippet.resourceId.videoId,
+        title: it.snippet.title,
+        channelTitle: it.snippet.videoOwnerChannelTitle || pl.snippet.channelTitle,
+        thumb: it.snippet.thumbnails && (it.snippet.thumbnails.medium||it.snippet.thumbnails.default).url,
+        duration: ''
+      })));
+      const listId = registerList(videos);
+      main.innerHTML = `<div class="playlist-header">
+          <img src="${pl.snippet.thumbnails && pl.snippet.thumbnails.medium ? pl.snippet.thumbnails.medium.url : ''}">
+          <div><div class="mono ph-meta">Playlist</div><h1 class="view-title">${esc(pl.snippet.title)}</h1>
+          <p class="view-sub">${pl.contentDetails.itemCount} videos</p></div>
+        </div>` + videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      wireTrackRowEvents(main);
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load playlist: ${esc(e.message)}</div>`; }
+  }
+
+  let likedPageToken = '';
+  async function openLiked(reset){
+    setActiveNav('liked');
+    if(!accessToken){
+      main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Sign in with Google to see the videos you've liked.</div>`;
+      return;
+    }
+    if(reset !== false) likedPageToken = '';
+    if(!likedPageToken) main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Loading…</div>`;
+    try{
+      const params = { part:'snippet,contentDetails', myRating:'like', maxResults:50 };
+      if(likedPageToken) params.pageToken = likedPageToken;
+      const data = await api('/videos', params, true);
+      const videos = (data.items||[]).map(mapFullVideo);
+      videos.forEach(v => likedCache.set(v.id, true));
+      const listId = registerList(videos);
+      const rows = videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      if(!likedPageToken && main.querySelector('#likedRows') === null){
+        main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div id="likedRows">${rows}</div><div class="load-more-wrap"></div>`;
+      } else {
+        $('likedRows').insertAdjacentHTML('beforeend', rows);
+      }
+      wireTrackRowEvents(main);
+      likedPageToken = data.nextPageToken || '';
+      const wrap = main.querySelector('.load-more-wrap');
+      wrap.innerHTML = '';
+      if(likedPageToken){
+        const btn = document.createElement('button');
+        btn.className = 'pill sm'; btn.textContent = 'Load more';
+        btn.addEventListener('click', () => openLiked(false));
+        wrap.appendChild(btn);
+      }
+    }catch(e){ main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Could not load: ${esc(e.message)}</div>`; }
+  }
+
+  function renderQueueView(){
+    setActiveNav('queue');
+    if(!queue.length){
+      main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">What's playing next.</p><div class="empty-state">Nothing queued yet — use the queue icon on any video, or play one to start a queue.</div>`;
+      return;
+    }
+    const listId = registerList(queue);
+    main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">What's playing next.</p>` +
+      queue.map((v,i)=>{
+        const row = trackRowHtml(v,i,listId);
+        return i === queueIndex ? row.replace('class="track-row"', 'class="track-row" style="background:var(--panel-2)"') : row;
+      }).join('');
+    wireTrackRowEvents(main);
+  }
+  function renderQueueViewIfActive(){
+    if(currentView === 'queue') renderQueueView();
+  }
+
+  function switchView(view){
+    currentView = view;
+    setActiveNav(view);
+    if(view === 'home'){ openHome(); }
+    else if(view === 'search'){ $('searchInput').value=''; renderSearchEmpty(); }
+    else if(view === 'liked'){ openLiked(); }
+    else if(view === 'queue'){ renderQueueView(); }
+  }
+
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
 
-  const navToggle = document.getElementById('navToggle');
-  const navLinks = document.querySelector('nav.links');
-  navToggle.addEventListener('click', () => {
-    const showing = navLinks.style.display === 'flex';
-    navLinks.style.display = showing ? 'none' : 'flex';
-    navLinks.style.flexDirection = 'column';
-    navLinks.style.position = 'absolute';
-    navLinks.style.top = '68px';
-    navLinks.style.left = '20px';
-    navLinks.style.right = '20px';
-    navLinks.style.background = '#1a1a1d';
-    navLinks.style.padding = '10px';
-    navLinks.style.borderRadius = '24px';
-    navLinks.style.border = '2px solid rgba(247,245,239,0.28)';
-    navLinks.style.gap = '4px';
+  let searchDebounce;
+  $('searchInput').addEventListener('input', (e) => {
+    clearTimeout(searchDebounce);
+    const q = e.target.value.trim();
+    currentView = 'search';
+    setActiveNav('search');
+    searchDebounce = setTimeout(() => runSearch(q), 350);
   });
 
-  const backToTop = document.getElementById('backToTop');
-  window.addEventListener('scroll', () => {
-    backToTop.classList.toggle('show', window.scrollY > 800);
+  async function loadPlaylists(){
+    if(!accessToken) return;
+    try{
+      const data = await api('/playlists', { part:'snippet', mine:'true', maxResults:50 }, true);
+      $('playlistList').innerHTML = (data.items||[]).map(p =>
+        `<button class="playlist-item" data-id="${p.id}">${esc(p.snippet.title)}</button>`).join('') ||
+        '<div class="empty-state" style="padding:8px 14px; font-size:12.5px;">No playlists yet.</div>';
+      $('playlistList').querySelectorAll('.playlist-item').forEach(el => {
+        el.addEventListener('click', () => openPlaylist(el.dataset.id));
+      });
+    }catch(e){ $('playlistList').innerHTML = `<div class="empty-state" style="padding:8px 14px;">Could not load playlists.</div>`; }
+  }
+
+  // ---------------- Player bar controls ----------------
+  $('playBtn').addEventListener('click', () => {
+    if(!ytPlayer || !playerReady) return;
+    const state = ytPlayer.getPlayerState();
+    if(state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
   });
-  backToTop.addEventListener('click', () => window.scrollTo({ top:0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
+  $('nextBtn').addEventListener('click', nextTrack);
+  $('prevBtn').addEventListener('click', prevTrack);
+  $('volSlider').addEventListener('input', (e) => { if(ytPlayer && playerReady) ytPlayer.setVolume(Number(e.target.value)); });
+  $('barTrack').addEventListener('click', (e) => {
+    if(!ytPlayer || !playerReady) return;
+    const d = ytPlayer.getDuration();
+    if(!d) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX-rect.left)/rect.width;
+    ytPlayer.seekTo(pct*d, true);
+  });
+  $('authBtn').addEventListener('click', beginSignIn);
+  $('authBtn').onclick = beginSignIn;
+
+  // ---------------- Bootstrap ----------------
+  function showGate(){
+    app.classList.remove('show');
+    gate.classList.remove('hidden');
+    const notice = $('setupNotice');
+    notice.textContent = 'Add a YouTube Data API v3 key as API_KEY near the top of the script. Get one free from the Google Cloud Console (enable "YouTube Data API v3" for your project, then create an API key under Credentials).';
+    notice.classList.remove('hidden');
+  }
+
+  async function showApp(){
+    gate.classList.add('hidden');
+    app.classList.add('show');
+    $('authBtn').classList.add('hidden');
+    initAuth();
+    initPlayer();
+    openHome();
+  }
+
+  function bootstrap(){
+    if(!API_KEY || API_KEY === 'YOUR_YOUTUBE_API_KEY_HERE'){ showGate(); return; }
+    showApp();
+  }
+
+  bootstrap();
+})();
 </script>
-
 </body>
 </html>
