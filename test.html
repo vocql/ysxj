@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Client</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000;
+    --panel:#0d0d0d;
+    --panel-2:#161616;
+    --line: rgba(255,255,255,0.12);
+    --line-strong: rgba(255,255,255,0.24);
+    --text:#ffffff;
+    --text-dim:#a6a6a6;
+    --text-faint:#6b6b6b;
+    --danger:#ff6b6b;
+    --radius-lg:24px;
+    --radius-md:16px;
+    --radius-sm:10px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--text); font-family:'Nunito',sans-serif; font-weight:600; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,h4{ font-family:'Fredoka',sans-serif; font-weight:600; margin:0; }
+  code,.mono{ font-family:'JetBrains Mono',monospace; }
+  ::selection{ background:#fff; color:#000; }
+  a{ color:inherit; }
+  button{ font-family:inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:#2a2a2a; border-radius:999px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  .hidden{ display:none !important; }
+
+  /* ---------- setup gate (only shown if the site owner hasn't configured an API key) ---------- */
+  #gate{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+  }
+  .gate-card{
+    width:min(420px, 90vw); padding:36px 32px; border-radius:var(--radius-lg);
+    background:var(--panel); border:2px solid var(--line-strong); text-align:left;
+  }
+  .gate-card .eyebrow{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.5px; color:var(--text-dim); border:1.5px solid var(--line-strong); padding:5px 14px; border-radius:999px; margin-bottom:16px;
+  }
+  .gate-card h1{ font-size:28px; margin-bottom:10px; }
+  .gate-card p{ color:var(--text-dim); font-size:15px; line-height:1.55; margin:0 0 18px; }
+  .gate-card .notice{ margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); line-height:1.7; word-break:break-word; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px 16px; }
+  .gate-card .error{ color:var(--danger); font-size:13px; margin-top:12px; }
+
+  .pill{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:13px 22px; border-radius:999px; border:2px solid #fff; background:transparent; color:#fff;
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; cursor:pointer;
+    transition:transform .12s ease, background .12s ease, color .12s ease; white-space:nowrap;
+  }
+  .pill.solid{ background:#fff; color:#000; }
+  .pill.solid:hover{ background:transparent; color:#fff; }
+  .pill:hover{ transform:translateY(-1px); }
+  .pill.full{ width:100%; }
+  .pill.sm{ padding:8px 16px; font-size:13px; }
+
+  /* ---------- app shell ---------- */
+  #app{ display:none; height:100vh; grid-template-rows:64px 1fr 96px; grid-template-columns:240px 1fr; grid-template-areas:"top top" "side main" "player player"; }
+  #app.show{ display:grid; }
+
+  .topbar{
+    grid-area:top; display:flex; align-items:center; gap:16px; padding:0 22px;
+    border-bottom:1px solid var(--line); background:var(--panel);
+  }
+  .search-wrap{ flex:1; max-width:520px; position:relative; }
+  .search-wrap svg{ position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; fill:var(--text-faint); }
+  #searchInput{
+    width:100%; background:var(--panel-2); border:1.5px solid var(--line); color:#fff;
+    padding:11px 16px 11px 38px; border-radius:999px; font-family:'Nunito',sans-serif; font-weight:700; font-size:14.5px;
+  }
+  #searchInput::placeholder{ color:var(--text-faint); font-weight:600; }
+  #searchInput:focus{ outline:none; border-color:#fff; }
+  .topbar-right{ display:flex; align-items:center; gap:10px; }
+  #userTag{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); }
+
+  .sidebar{
+    grid-area:side; background:var(--panel); border-right:1px solid var(--line);
+    padding:18px 12px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:999px;
+    background:none; border:none; color:var(--text-dim); font-family:'Fredoka',sans-serif; font-weight:600; font-size:14.5px;
+    cursor:pointer; text-align:left; width:100%;
+  }
+  .nav-item svg{ width:18px; height:18px; fill:currentColor; flex:none; }
+  .nav-item:hover{ color:#fff; background:var(--panel-2); }
+  .nav-item.active{ color:#000; background:#fff; }
+  .nav-item.locked{ opacity:0.5; }
+  .sidebar-divider{ height:1px; background:var(--line); margin:12px 6px; }
+  .sidebar-label{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--text-faint); padding:8px 14px 4px;
+  }
+  .playlist-item{
+    display:block; width:100%; text-align:left; background:none; border:none; color:var(--text-dim);
+    padding:8px 14px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .playlist-item:hover{ color:#fff; background:var(--panel-2); }
+  .playlist-item.active{ color:#fff; background:var(--panel-2); }
+
+  .main{ grid-area:main; overflow-y:auto; padding:28px 32px 40px; }
+  .view-title{ font-size:30px; margin-bottom:6px; }
+  .view-sub{ color:var(--text-dim); font-size:14.5px; margin-bottom:26px; }
+  .section-label{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--text-faint); margin:28px 0 12px;
+  }
+  .section-label:first-child{ margin-top:0; }
+
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:16px; }
+  .art-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px;
+    cursor:pointer; transition:background .15s ease, transform .15s ease;
+  }
+  .art-card:hover{ background:var(--panel-2); transform:translateY(-2px); }
+  .art-card img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:var(--radius-sm); background:var(--panel-2); display:block; margin-bottom:10px; }
+  .art-card.round img{ aspect-ratio:1; border-radius:999px; }
+  .art-card .name{ font-family:'Fredoka',sans-serif; font-size:14.5px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .art-card .sub{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+
+  .track-row{
+    display:flex; align-items:center; gap:14px; padding:9px 10px; border-radius:10px;
+  }
+  .track-row:hover{ background:var(--panel-2); }
+  .track-row .idx{ width:22px; text-align:center; color:var(--text-faint); font-family:'JetBrains Mono',monospace; font-size:12.5px; flex:none; }
+  .track-row img{ width:78px; height:44px; border-radius:8px; object-fit:cover; background:var(--panel-2); flex:none; }
+  .track-row .t-main{ min-width:0; flex:1; }
+  .track-row .t-name{ font-family:'Nunito',sans-serif; font-weight:700; font-size:14.5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .track-row .t-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+  .track-row .t-dur{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-faint); flex:none; width:44px; text-align:right; }
+  .row-btn{
+    background:none; border:none; color:var(--text-dim); cursor:pointer; padding:6px; flex:none;
+    display:flex; align-items:center; justify-content:center; opacity:0.75;
+  }
+  .row-btn:hover{ opacity:1; color:#fff; }
+  .row-btn svg{ width:17px; height:17px; fill:currentColor; }
+  .row-btn.liked{ color:#fff; opacity:1; }
+  .row-btn[disabled]{ cursor:not-allowed; opacity:0.3; }
+  .row-play{
+    background:#fff; color:#000; border:none; border-radius:50%; width:32px; height:32px; flex:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .1s ease;
+  }
+  .track-row:hover .row-play{ opacity:1; }
+  .row-play svg{ width:13px; height:13px; fill:#000; }
+
+  .empty-state{ color:var(--text-faint); font-size:14.5px; padding:30px 6px; }
+  .load-more-wrap{ margin-top:18px; }
+
+  .playlist-header{ display:flex; gap:22px; align-items:flex-end; margin-bottom:28px; }
+  .playlist-header img{ width:220px; height:124px; border-radius:var(--radius-md); object-fit:cover; background:var(--panel-2); flex:none; }
+  .playlist-header .ph-meta{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-faint); margin-top:8px; text-transform:uppercase; letter-spacing:0.4px; }
+
+  /* ---------- now playing bar ---------- */
+  .player-bar{
+    grid-area:player; background:var(--panel); border-top:1px solid var(--line);
+    display:flex; align-items:center; gap:20px; padding:0 22px;
+  }
+  .np-meta{ display:flex; align-items:center; gap:12px; width:300px; min-width:0; }
+  .np-video-wrap{ width:96px; height:54px; border-radius:8px; overflow:hidden; background:var(--panel-2); flex:none; position:relative; }
+  .np-video-wrap iframe{ width:100%; height:100%; border:0; display:block; }
+  .np-video-wrap .np-placeholder{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--text-faint); }
+  .np-video-wrap .np-placeholder svg{ width:20px; height:20px; fill:currentColor; }
+  .np-text{ min-width:0; }
+  .np-text .np-name{ font-family:'Fredoka',sans-serif; font-size:14px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .np-text .np-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+
+  .np-center{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; max-width:640px; margin:0 auto; }
+  .np-controls{ display:flex; align-items:center; gap:20px; }
+  .np-ctrl{ background:none; border:none; color:#fff; cursor:pointer; opacity:0.8; display:flex; align-items:center; }
+  .np-ctrl:hover{ opacity:1; }
+  .np-ctrl svg{ width:18px; height:18px; fill:currentColor; }
+  .np-ctrl.play{ width:34px; height:34px; border-radius:50%; background:#fff; color:#000; justify-content:center; opacity:1; }
+  .np-ctrl.play svg{ width:14px; height:14px; fill:#000; }
+  .np-progress{ display:flex; align-items:center; gap:8px; width:100%; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-faint); }
+  .np-bar-track{ flex:1; height:4px; border-radius:999px; background:var(--panel-2); position:relative; cursor:pointer; }
+  .np-bar-fill{ position:absolute; left:0; top:0; bottom:0; border-radius:999px; background:#fff; width:0%; }
+
+  .np-right{ width:220px; display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+  .np-badge{
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px;
+    color:var(--text-faint); border:1px solid var(--line); padding:4px 10px; border-radius:999px;
+  }
+  input[type="range"].vol{ -webkit-appearance:none; width:90px; height:3px; border-radius:999px; background:var(--panel-2); outline:none; }
+  input[type="range"].vol::-webkit-slider-thumb{ -webkit-appearance:none; width:11px; height:11px; border-radius:50%; background:#fff; cursor:pointer; }
+  input[type="range"].vol::-moz-range-thumb{ width:11px; height:11px; border-radius:50%; border:none; background:#fff; cursor:pointer; }
+
+  .toast{
+    position:fixed; bottom:110px; left:50%; transform:translateX(-50%);
+    background:#fff; color:#000; padding:12px 24px; border-radius:999px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px;
+    z-index:200; opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  @media (max-width:820px){
+    #app{ grid-template-columns:0 1fr; }
+    .sidebar{ display:none; }
+    .np-meta{ width:auto; }
+    .np-right{ width:auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ---------- Setup gate — only shown if the site owner hasn't added an API key yet ---------- -->
+<div id="gate">
+  <div class="gate-card">
+    <span class="eyebrow">YouTube</span>
+    <h1>Almost ready</h1>
+    <p id="gateBody">This page needs a YouTube Data API key before it can search or play anything. No visitor needs an account or Premium — the key just lets the page talk to YouTube on everyone's behalf.</p>
+    <div class="error hidden" id="gateError"></div>
+    <div class="notice hidden" id="setupNotice"></div>
+  </div>
+</div>
+
+<!-- ---------- App shell ---------- -->
+<div id="app">
+  <div class="topbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg>
+      <input type="text" id="searchInput" placeholder="Search videos, channels, playlists…">
+    </div>
+    <div class="topbar-right">
+      <span id="userTag" class="mono"></span>
+      <button class="pill sm" id="authBtn">Sign in with Google</button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <button class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"/></svg>
+      Home
+    </button>
+    <button class="nav-item" data-view="search">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg>
+      Search
+    </button>
+    <button class="nav-item" data-view="liked">
+      <svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.9C.6 8.4 2 5 5.4 5c1.9 0 3.3 1 4.1 2.4C10.3 6 11.7 5 13.6 5 17 5 18.4 8.4 21.5 12.1 19 16.65 12 21 12 21z"/></svg>
+      Liked Videos
+    </button>
+    <button class="nav-item" data-view="queue">
+      <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="16" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="6" x2="19" y2="13.6" stroke="currentColor" stroke-width="2"/></svg>
+      Queue
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Your Playlists</div>
+    <div id="playlistList"><div class="empty-state" style="padding:8px 14px; font-size:12.5px;">Sign in to see these.</div></div>
+  </div>
+
+  <div class="main" id="main"></div>
+
+  <div class="player-bar">
+    <div class="np-meta">
+      <div class="np-video-wrap" id="npVideoWrap">
+        <div class="np-placeholder" id="npPlaceholder"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <div id="ytPlayer"></div>
+      </div>
+      <div class="np-text">
+        <div class="np-name" id="npName">Nothing playing</div>
+        <div class="np-artist" id="npArtist"></div>
+      </div>
+    </div>
+    <div class="np-center">
+      <div class="np-controls">
+        <button class="np-ctrl" id="prevBtn" title="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="np-ctrl play" id="playBtn" title="Play/Pause"><svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+        <button class="np-ctrl" id="nextBtn" title="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg></button>
+      </div>
+      <div class="np-progress">
+        <span id="elapsed">0:00</span>
+        <div class="np-bar-track" id="barTrack"><div class="np-bar-fill" id="barFill"></div></div>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+    <div class="np-right">
+      <span class="np-badge" id="acctBadge">Ready for anyone</span>
+      <input type="range" class="vol" id="volSlider" min="0" max="100" value="70">
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ======================================================================
+  // SITE OWNER SETUP:
+  // 1. In Google Cloud Console, enable the "YouTube Data API v3" and create
+  //    an API key. Paste it below as API_KEY. This is all that's needed
+  //    for search, browsing, and playback — no visitor needs an account.
+  // 2. Optional — to let visitors sign in with their own Google account and
+  //    see their Liked Videos / Playlists / use the Like button, also
+  //    create an OAuth 2.0 Client ID (type: Web application), add this
+  //    page's exact URL as an Authorized JavaScript origin, and paste the
+  //    Client ID below as OAUTH_CLIENT_ID. Leave it blank to skip this.
+  // ======================================================================
+  const API_KEY = 'AIzaSyCtuq413bq7_VIcwQ-brpj3ZeJjf3X7RQY';
+  const OAUTH_CLIENT_ID = '136224278810-kcrhe4rdol6i0ulr97nkioof94bh0gul.apps.googleusercontent.com';
+
+  const OAUTH_SCOPE = 'https://www.googleapis.com/auth/youtube';
+  const API_BASE = 'https://www.googleapis.com/youtube/v3';
+
+  const $ = (id) => document.getElementById(id);
+  const gate = $('gate'), app = $('app');
+
+  function toast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+  function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtTime(sec){
+    sec = Math.max(0, Math.floor(sec));
+    const m = Math.floor(sec/60), s = sec%60;
+    return m+':'+String(s).padStart(2,'0');
+  }
+  function fmtDuration(iso){
+    // ISO 8601 duration, e.g. PT4M13S
+    const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso||'');
+    if(!m) return '';
+    const h=+(m[1]||0), mi=+(m[2]||0), s=+(m[3]||0);
+    const total = h*3600+mi*60+s;
+    if(h) return h+':'+String(mi).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    return fmtTime(total);
+  }
+
+  // ---------------- Optional Google sign-in (Google Identity Services) ----------------
+  let accessToken = null;
+  let tokenClient = null;
+  let signedIn = false;
+
+  function loadGis(){
+    return new Promise((resolve) => {
+      if(window.google && window.google.accounts){ resolve(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = resolve;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function initAuth(){
+    if(!OAUTH_CLIENT_ID) return;
+    await loadGis();
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: OAUTH_CLIENT_ID,
+      scope: OAUTH_SCOPE,
+      callback: (resp) => {
+        if(resp.error){ toast('Sign-in failed: ' + resp.error); return; }
+        accessToken = resp.access_token;
+        signedIn = true;
+        onSignedIn();
+      }
+    });
+    $('authBtn').classList.remove('hidden');
+  }
+
+  function beginSignIn(){
+    if(!tokenClient){ toast('Sign-in is not set up on this page yet.'); return; }
+    tokenClient.requestAccessToken({ prompt: signedIn ? '' : 'consent' });
+  }
+  function signOut(){
+    if(accessToken && window.google){
+      google.accounts.oauth2.revoke(accessToken, () => {});
+    }
+    accessToken = null; signedIn = false;
+    $('userTag').textContent = '';
+    $('authBtn').textContent = 'Sign in with Google';
+    $('authBtn').onclick = beginSignIn;
+    $('playlistList').innerHTML = '<div class="empty-state" style="padding:8px 14px; font-size:12.5px;">Sign in to see these.</div>';
+    likedCache.clear();
+    if(currentView === 'liked' || currentView === 'queue') switchView('home');
+    toast('Signed out');
+  }
+
+  async function onSignedIn(){
+    $('authBtn').textContent = 'Sign out';
+    $('authBtn').onclick = signOut;
+    try{
+      const me = await api('/channels', { part:'snippet', mine:'true' }, true);
+      const ch = me.items && me.items[0];
+      $('userTag').textContent = ch ? ch.snippet.title : 'Signed in';
+    }catch(e){ $('userTag').textContent = 'Signed in'; }
+    loadPlaylists();
+    toast('Signed in');
+    if(currentView === 'liked') openLiked();
+  }
+
+  // ---------------- API helper ----------------
+  async function api(path, params={}, needsAuth=false){
+    if(needsAuth && !accessToken) throw new Error('sign in required');
+    const usp = new URLSearchParams(params);
+    if(!accessToken) usp.set('key', API_KEY);
+    const headers = {};
+    if(accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+    const res = await fetch(API_BASE + path + '?' + usp.toString(), { headers });
+    const data = await res.json();
+    if(!res.ok){ throw new Error((data && data.error && data.error.message) || res.statusText); }
+    return data;
+  }
+
+  // ---------------- YouTube IFrame player ----------------
+  let ytPlayer = null, playerReady = false;
+  let queue = [];        // array of video items
+  let queueIndex = -1;
+  let progressTimer = null;
+  let curDuration = 0;
+  let likedCache = new Map();
+
+  function loadIframeApi(){
+    return new Promise((resolve) => {
+      if(window.YT && window.YT.Player){ resolve(); return; }
+      window.onYouTubeIframeAPIReady = resolve;
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(s);
+    });
+  }
+
+  async function initPlayer(){
+    await loadIframeApi();
+    ytPlayer = new YT.Player('ytPlayer', {
+      height: '100%', width: '100%',
+      playerVars: { rel: 0, modestbranding: 1, playsinline: 1 },
+      events: {
+        onReady: () => { playerReady = true; ytPlayer.setVolume(Number($('volSlider').value)); },
+        onStateChange: onPlayerStateChange
+      }
+    });
+  }
+
+  function onPlayerStateChange(e){
+    const state = e.data;
+    if(state === YT.PlayerState.PLAYING){
+      $('npPlaceholder').classList.add('hidden');
+      curDuration = ytPlayer.getDuration();
+      $('duration').textContent = fmtTime(curDuration);
+      setPlayIcon(true);
+      restartProgressTimer();
+    } else if(state === YT.PlayerState.PAUSED){
+      setPlayIcon(false);
+    } else if(state === YT.PlayerState.ENDED){
+      nextTrack();
+    }
+  }
+  function setPlayIcon(playing){
+    $('playIcon').innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  }
+  function restartProgressTimer(){
+    if(progressTimer) clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      if(!ytPlayer || !ytPlayer.getCurrentTime) return;
+      const t = ytPlayer.getCurrentTime();
+      const d = ytPlayer.getDuration() || curDuration;
+      $('elapsed').textContent = fmtTime(t);
+      $('barFill').style.width = (d ? (t/d)*100 : 0) + '%';
+    }, 500);
+  }
+
+  function playVideoAt(index){
+    if(index < 0 || index >= queue.length) return;
+    queueIndex = index;
+    const v = queue[index];
+    if(!playerReady){ toast('Player is still loading — try again in a second.'); return; }
+    ytPlayer.loadVideoById(v.id);
+    $('npName').textContent = v.title;
+    $('npArtist').textContent = v.channelTitle;
+    $('npPlaceholder').classList.remove('hidden');
+    renderQueueViewIfActive();
+  }
+  function playNow(video){
+    // insert right after current position and play it
+    queue.splice(queueIndex+1, 0, video);
+    playVideoAt(queueIndex+1);
+  }
+  function addToQueue(video){
+    queue.push(video);
+    toast('Added to queue');
+    if(currentView === 'queue') renderQueueView();
+  }
+  function nextTrack(){ if(queueIndex+1 < queue.length) playVideoAt(queueIndex+1); }
+  function prevTrack(){ if(queueIndex-1 >= 0) playVideoAt(queueIndex-1); }
+
+  async function toggleLike(video, btn){
+    if(!accessToken){ toast('Sign in with Google to like videos.'); return; }
+    const liked = likedCache.get(video.id);
+    try{
+      await api('/videos/rate', { id: video.id, rating: liked ? 'none' : 'like' }, true).catch(async () => {
+        // rate endpoint returns no JSON body on success; ignore parse errors by re-checking
+      });
+      likedCache.set(video.id, !liked);
+      btn.classList.toggle('liked', !liked);
+    }catch(e){ toast('Could not update like: ' + e.message); }
+  }
+
+  async function checkLiked(ids){
+    if(!accessToken || !ids.length) return;
+    try{
+      const data = await api('/videos/getRating', { id: ids.join(',') }, true);
+      (data.items||[]).forEach(it => likedCache.set(it.videoId, it.rating === 'like'));
+    }catch(e){}
+  }
+
+  function heartIcon(filled){
+    return filled
+      ? '<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.9C.6 8.4 2 5 5.4 5c1.9 0 3.3 1 4.1 2.4C10.3 6 11.7 5 13.6 5 17 5 18.4 8.4 21.5 12.1 19 16.65 12 21 12 21z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.35-9.5-8.9C.6 8.4 2 5 5.4 5c1.9 0 3.3 1 4.1 2.4C10.3 6 11.7 5 13.6 5 17 5 18.4 8.4 21.5 12.1 19 16.65 12 21 12 21z"/></svg>';
+  }
+
+  // ---------------- Rendering: track rows ----------------
+  let renderedLists = {};
+  let listCounter = 0;
+
+  function trackRowHtml(video, idx, listId){
+    const liked = likedCache.get(video.id) || false;
+    return `<div class="track-row" data-list="${listId}" data-idx="${idx}">
+      <span class="idx">${idx+1}</span>
+      <button class="row-play" data-action="play">${'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'}</button>
+      <img src="${video.thumb||''}" alt="">
+      <div class="t-main">
+        <div class="t-name">${esc(video.title)}</div>
+        <div class="t-artist">${esc(video.channelTitle||'')}</div>
+      </div>
+      <button class="row-btn ${liked?'liked':''}" data-action="like" title="Like this video">${heartIcon(liked)}</button>
+      <button class="row-btn" data-action="queue" title="Add to queue"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="16" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="6" x2="19" y2="13.6" stroke="currentColor" stroke-width="2"/></svg></button>
+      <span class="t-dur">${esc(video.duration||'')}</span>
+    </div>`;
+  }
+
+  function registerList(videos){
+    const id = 'l' + (++listCounter);
+    renderedLists[id] = { videos };
+    checkLiked(videos.map(v=>v.id).filter(Boolean).slice(0,50));
+    return id;
+  }
+
+  function wireTrackRowEvents(container){
+    container.addEventListener('click', (e) => {
+      const rowBtn = e.target.closest('[data-action]');
+      const row = e.target.closest('.track-row');
+      if(!row) return;
+      const listId = row.dataset.list;
+      const idx = Number(row.dataset.idx);
+      const list = renderedLists[listId];
+      if(!list) return;
+      const video = list.videos[idx];
+
+      if(rowBtn && rowBtn.dataset.action === 'like'){ toggleLike(video, rowBtn); return; }
+      if(rowBtn && rowBtn.dataset.action === 'queue'){ addToQueue(video); return; }
+
+      // play: load this list into the queue starting at idx
+      queue = list.videos.slice();
+      playVideoAt(idx);
+    });
+  }
+
+  // ---------------- Data mapping helpers ----------------
+  function mapSearchVideo(item){
+    return {
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      channelId: item.snippet.channelId,
+      thumb: item.snippet.thumbnails && (item.snippet.thumbnails.medium||item.snippet.thumbnails.default).url,
+      duration: ''
+    };
+  }
+  function mapFullVideo(item){
+    return {
+      id: item.id,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      channelId: item.snippet.channelId,
+      thumb: item.snippet.thumbnails && (item.snippet.thumbnails.medium||item.snippet.thumbnails.default).url,
+      duration: item.contentDetails ? fmtDuration(item.contentDetails.duration) : ''
+    };
+  }
+  async function hydrateDurations(videos){
+    const ids = videos.map(v=>v.id).filter(Boolean);
+    if(!ids.length) return videos;
+    try{
+      const data = await api('/videos', { part:'contentDetails', id: ids.join(',') });
+      const byId = new Map((data.items||[]).map(it => [it.id, fmtDuration(it.contentDetails.duration)]));
+      videos.forEach(v => { if(byId.has(v.id)) v.duration = byId.get(v.id); });
+    }catch(e){}
+    return videos;
+  }
+
+  // ---------------- Views ----------------
+  let currentView = 'home';
+  const main = $('main');
+
+  function setActiveNav(view){
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+    document.querySelectorAll('.playlist-item').forEach(n => n.classList.remove('active'));
+  }
+
+  function renderSearchEmpty(){
+    main.innerHTML = `<h2 class="view-title">Search</h2><p class="view-sub">Find videos, channels, and playlists.</p><div class="empty-state">Start typing above to search.</div>`;
+  }
+
+  async function runSearch(q){
+    if(!q){ renderSearchEmpty(); return; }
+    main.innerHTML = `<h2 class="view-title">Results for "${esc(q)}"</h2><div class="empty-state">Searching…</div>`;
+    try{
+      const [videoData, channelData, playlistData] = await Promise.all([
+        api('/search', { part:'snippet', type:'video', maxResults:8, q }),
+        api('/search', { part:'snippet', type:'channel', maxResults:6, q }),
+        api('/search', { part:'snippet', type:'playlist', maxResults:6, q })
+      ]);
+
+      let html = `<h2 class="view-title">Results for "${esc(q)}"</h2>`;
+
+      if(videoData.items && videoData.items.length){
+        const videos = await hydrateDurations(videoData.items.map(mapSearchVideo));
+        const listId = registerList(videos);
+        html += `<div class="section-label">Videos</div><div id="${listId}-wrap">` +
+          videos.map((v,i)=>trackRowHtml(v,i,listId)).join('') + `</div>`;
+      }
+      if(channelData.items && channelData.items.length){
+        html += `<div class="section-label">Channels</div><div class="card-grid">` +
+          channelData.items.map(c => `<div class="art-card round" data-channel="${c.id.channelId}">
+            <img src="${c.snippet.thumbnails.medium.url}">
+            <div class="name">${esc(c.snippet.channelTitle)}</div><div class="sub">Channel</div></div>`).join('') + `</div>`;
+      }
+      if(playlistData.items && playlistData.items.length){
+        html += `<div class="section-label">Playlists</div><div class="card-grid">` +
+          playlistData.items.map(p => `<div class="art-card" data-playlist="${p.id.playlistId}">
+            <img src="${p.snippet.thumbnails.medium.url}">
+            <div class="name">${esc(p.snippet.title)}</div><div class="sub">By ${esc(p.snippet.channelTitle)}</div></div>`).join('') + `</div>`;
+      }
+      if(!(videoData.items&&videoData.items.length) && !(channelData.items&&channelData.items.length) && !(playlistData.items&&playlistData.items.length)){
+        html += `<div class="empty-state">No results.</div>`;
+      }
+      main.innerHTML = html;
+      wireTrackRowEvents(main);
+      main.querySelectorAll('[data-channel]').forEach(el => el.addEventListener('click', () => openChannel(el.dataset.channel)));
+      main.querySelectorAll('[data-playlist]').forEach(el => el.addEventListener('click', () => openPlaylist(el.dataset.playlist)));
+    }catch(e){
+      main.innerHTML = `<div class="empty-state">Search failed: ${esc(e.message)}</div>`;
+    }
+  }
+
+  async function openHome(){
+    setActiveNav('home');
+    main.innerHTML = `<h2 class="view-title">Trending</h2><p class="view-sub">Popular right now.</p><div class="empty-state">Loading…</div>`;
+    try{
+      const data = await api('/videos', { part:'snippet,contentDetails', chart:'mostPopular', maxResults:20, regionCode:'US' });
+      const videos = (data.items||[]).map(mapFullVideo);
+      const listId = registerList(videos);
+      main.innerHTML = `<h2 class="view-title">Trending</h2><p class="view-sub">Popular right now.</p>` +
+        videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      wireTrackRowEvents(main);
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load trending videos: ${esc(e.message)}</div>`; }
+  }
+
+  async function openChannel(id){
+    setActiveNav(null);
+    main.innerHTML = `<div class="empty-state">Loading channel…</div>`;
+    try{
+      const chData = await api('/channels', { part:'snippet,contentDetails,statistics', id });
+      const channel = chData.items[0];
+      const uploadsId = channel.contentDetails.relatedPlaylists.uploads;
+      const itemsData = await api('/playlistItems', { part:'snippet', playlistId: uploadsId, maxResults: 20 });
+      const videos = await hydrateDurations(itemsData.items.map(it => ({
+        id: it.snippet.resourceId.videoId,
+        title: it.snippet.title,
+        channelTitle: channel.snippet.title,
+        thumb: it.snippet.thumbnails && (it.snippet.thumbnails.medium||it.snippet.thumbnails.default).url,
+        duration: ''
+      })));
+      const listId = registerList(videos);
+      main.innerHTML = `<div class="playlist-header">
+          <img src="${channel.snippet.thumbnails.medium.url}" style="border-radius:999px; width:124px; height:124px;">
+          <div><div class="mono ph-meta">Channel · ${Number(channel.statistics.subscriberCount||0).toLocaleString()} subscribers</div><h1 class="view-title">${esc(channel.snippet.title)}</h1></div>
+        </div>
+        <div class="section-label">Uploads</div>` + videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      wireTrackRowEvents(main);
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load channel: ${esc(e.message)}</div>`; }
+  }
+
+  async function openPlaylist(id){
+    setActiveNav(null);
+    document.querySelectorAll('.playlist-item').forEach(n => n.classList.toggle('active', n.dataset.id === id));
+    main.innerHTML = `<div class="empty-state">Loading playlist…</div>`;
+    try{
+      const plData = await api('/playlists', { part:'snippet,contentDetails', id });
+      const pl = plData.items[0];
+      const itemsData = await api('/playlistItems', { part:'snippet', playlistId:id, maxResults:50 });
+      const videos = await hydrateDurations(itemsData.items.filter(it => it.snippet.resourceId && it.snippet.resourceId.videoId).map(it => ({
+        id: it.snippet.resourceId.videoId,
+        title: it.snippet.title,
+        channelTitle: it.snippet.videoOwnerChannelTitle || pl.snippet.channelTitle,
+        thumb: it.snippet.thumbnails && (it.snippet.thumbnails.medium||it.snippet.thumbnails.default).url,
+        duration: ''
+      })));
+      const listId = registerList(videos);
+      main.innerHTML = `<div class="playlist-header">
+          <img src="${pl.snippet.thumbnails && pl.snippet.thumbnails.medium ? pl.snippet.thumbnails.medium.url : ''}">
+          <div><div class="mono ph-meta">Playlist</div><h1 class="view-title">${esc(pl.snippet.title)}</h1>
+          <p class="view-sub">${pl.contentDetails.itemCount} videos</p></div>
+        </div>` + videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      wireTrackRowEvents(main);
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load playlist: ${esc(e.message)}</div>`; }
+  }
+
+  let likedPageToken = '';
+  async function openLiked(reset){
+    setActiveNav('liked');
+    if(!accessToken){
+      main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Sign in with Google to see the videos you've liked.</div>`;
+      return;
+    }
+    if(reset !== false) likedPageToken = '';
+    if(!likedPageToken) main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Loading…</div>`;
+    try{
+      const params = { part:'snippet,contentDetails', myRating:'like', maxResults:50 };
+      if(likedPageToken) params.pageToken = likedPageToken;
+      const data = await api('/videos', params, true);
+      const videos = (data.items||[]).map(mapFullVideo);
+      videos.forEach(v => likedCache.set(v.id, true));
+      const listId = registerList(videos);
+      const rows = videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      if(!likedPageToken && main.querySelector('#likedRows') === null){
+        main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div id="likedRows">${rows}</div><div class="load-more-wrap"></div>`;
+      } else {
+        $('likedRows').insertAdjacentHTML('beforeend', rows);
+      }
+      wireTrackRowEvents(main);
+      likedPageToken = data.nextPageToken || '';
+      const wrap = main.querySelector('.load-more-wrap');
+      wrap.innerHTML = '';
+      if(likedPageToken){
+        const btn = document.createElement('button');
+        btn.className = 'pill sm'; btn.textContent = 'Load more';
+        btn.addEventListener('click', () => openLiked(false));
+        wrap.appendChild(btn);
+      }
+    }catch(e){ main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Could not load: ${esc(e.message)}</div>`; }
+  }
+
+  function renderQueueView(){
+    setActiveNav('queue');
+    if(!queue.length){
+      main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">What's playing next.</p><div class="empty-state">Nothing queued yet — use the queue icon on any video, or play one to start a queue.</div>`;
+      return;
+    }
+    const listId = registerList(queue);
+    main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">What's playing next.</p>` +
+      queue.map((v,i)=>{
+        const row = trackRowHtml(v,i,listId);
+        return i === queueIndex ? row.replace('class="track-row"', 'class="track-row" style="background:var(--panel-2)"') : row;
+      }).join('');
+    wireTrackRowEvents(main);
+  }
+  function renderQueueViewIfActive(){
+    if(currentView === 'queue') renderQueueView();
+  }
+
+  function switchView(view){
+    currentView = view;
+    setActiveNav(view);
+    if(view === 'home'){ openHome(); }
+    else if(view === 'search'){ $('searchInput').value=''; renderSearchEmpty(); }
+    else if(view === 'liked'){ openLiked(); }
+    else if(view === 'queue'){ renderQueueView(); }
+  }
+
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  let searchDebounce;
+  $('searchInput').addEventListener('input', (e) => {
+    clearTimeout(searchDebounce);
+    const q = e.target.value.trim();
+    currentView = 'search';
+    setActiveNav('search');
+    searchDebounce = setTimeout(() => runSearch(q), 350);
+  });
+
+  async function loadPlaylists(){
+    if(!accessToken) return;
+    try{
+      const data = await api('/playlists', { part:'snippet', mine:'true', maxResults:50 }, true);
+      $('playlistList').innerHTML = (data.items||[]).map(p =>
+        `<button class="playlist-item" data-id="${p.id}">${esc(p.snippet.title)}</button>`).join('') ||
+        '<div class="empty-state" style="padding:8px 14px; font-size:12.5px;">No playlists yet.</div>';
+      $('playlistList').querySelectorAll('.playlist-item').forEach(el => {
+        el.addEventListener('click', () => openPlaylist(el.dataset.id));
+      });
+    }catch(e){ $('playlistList').innerHTML = `<div class="empty-state" style="padding:8px 14px;">Could not load playlists.</div>`; }
+  }
+
+  // ---------------- Player bar controls ----------------
+  $('playBtn').addEventListener('click', () => {
+    if(!ytPlayer || !playerReady) return;
+    const state = ytPlayer.getPlayerState();
+    if(state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
+  });
+  $('nextBtn').addEventListener('click', nextTrack);
+  $('prevBtn').addEventListener('click', prevTrack);
+  $('volSlider').addEventListener('input', (e) => { if(ytPlayer && playerReady) ytPlayer.setVolume(Number(e.target.value)); });
+  $('barTrack').addEventListener('click', (e) => {
+    if(!ytPlayer || !playerReady) return;
+    const d = ytPlayer.getDuration();
+    if(!d) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX-rect.left)/rect.width;
+    ytPlayer.seekTo(pct*d, true);
+  });
+  $('authBtn').addEventListener('click', beginSignIn);
+  $('authBtn').onclick = beginSignIn;
+
+  // ---------------- Bootstrap ----------------
+  function showGate(){
+    app.classList.remove('show');
+    gate.classList.remove('hidden');
+    const notice = $('setupNotice');
+    notice.textContent = 'Add a YouTube Data API v3 key as API_KEY near the top of the script. Get one free from the Google Cloud Console (enable "YouTube Data API v3" for your project, then create an API key under Credentials).';
+    notice.classList.remove('hidden');
+  }
+
+  async function showApp(){
+    gate.classList.add('hidden');
+    app.classList.add('show');
+    $('authBtn').classList.add('hidden');
+    initAuth();
+    initPlayer();
+    openHome();
+  }
+
+  function bootstrap(){
+    if(!API_KEY || API_KEY === 'YOUR_YOUTUBE_API_KEY_HERE'){ showGate(); return; }
+    showApp();
+  }
+
+  bootstrap();
+})();
+</script>
+</body>
+</html>
