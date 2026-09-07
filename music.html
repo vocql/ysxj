@@ -174,10 +174,9 @@
     display:flex; align-items:center; gap:20px; padding:0 22px;
   }
   .np-meta{ display:flex; align-items:center; gap:12px; width:300px; min-width:0; }
-  .np-video-wrap{ width:96px; height:54px; border-radius:8px; overflow:hidden; background:var(--panel-2); flex:none; position:relative; }
+  .np-video-wrap{ width:96px; height:54px; border-radius:8px; overflow:hidden; background:var(--panel-2); flex:none; }
   .np-video-wrap iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
-  .np-video-wrap .np-logo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:var(--panel-2); }
-  .np-video-wrap .np-logo.hidden-logo{ display:none; }
+  .np-video-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
   .np-text{ min-width:0; }
   .np-text .np-name{ font-family:'Fredoka',sans-serif; font-size:14px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .np-text .np-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
@@ -279,7 +278,7 @@
 
   <div class="player-bar">
     <div class="np-meta">
-      <div class="np-video-wrap"><img class="np-logo" id="npLogo" src="ysxjlogo.png" alt=""><div id="ytPlayer"></div></div>
+      <div class="np-video-wrap" id="npVideoWrap"><img class="np-logo" id="npLogo" src="ysxjlogo.png" alt=""></div>
       <div class="np-text">
         <div class="np-name" id="npName">Nothing playing</div>
         <div class="np-artist" id="npArtist"></div>
@@ -444,16 +443,29 @@
     });
   }
 
-  async function initPlayer(){
+  let playerInitStarted = false;
+  async function ensurePlayer(){
+    if(playerInitStarted) return;
+    playerInitStarted = true;
+    const logo = $('npLogo');
+    if(logo) logo.remove();
+    const div = document.createElement('div');
+    div.id = 'ytPlayer';
+    $('npVideoWrap').appendChild(div);
     await loadIframeApi();
     ytPlayer = new YT.Player('ytPlayer', {
       height: '100%', width: '100%',
       playerVars: { rel: 0, modestbranding: 1, playsinline: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3 },
       events: {
-        onReady: () => { playerReady = true; ytPlayer.setVolume(Number($('volSlider').value)); },
+        onReady: () => { playerReady = true; ytPlayer.setVolume(Number($('volSlider').value)); playPendingIfAny(); },
         onStateChange: onPlayerStateChange
       }
     });
+  }
+
+  let pendingVideoId = null;
+  function playPendingIfAny(){
+    if(pendingVideoId){ ytPlayer.loadVideoById(pendingVideoId); pendingVideoId = null; }
   }
 
   function onPlayerStateChange(e){
@@ -487,11 +499,11 @@
     if(index < 0 || index >= queue.length) return;
     queueIndex = index;
     const v = queue[index];
-    if(!playerReady){ toast('Player is still loading — try again in a second.'); return; }
-    ytPlayer.loadVideoById(v.id);
     $('npName').textContent = v.title;
     $('npArtist').textContent = v.channelTitle;
-    $('npLogo').classList.add('hidden-logo');
+    ensurePlayer();
+    if(playerReady){ ytPlayer.loadVideoById(v.id); }
+    else { pendingVideoId = v.id; }
     renderQueueViewIfActive();
   }
   function playNow(video){
@@ -852,7 +864,6 @@
     app.classList.add('show');
     $('authBtn').classList.add('hidden');
     initAuth();
-    initPlayer();
     openHome();
   }
 
