@@ -314,25 +314,41 @@
   }
 
   async function beginLogin() {
+    gateError.style.display = 'none';
+
     if (!CLIENT_ID || CLIENT_ID === 'YOUR_SPOTIFY_CLIENT_ID_HERE') {
-      showError('This page has not been set up yet — the site owner needs to add a Spotify Client ID in the code.');
+      showError('This page has not been set up yet — add a Spotify Client ID in the code (search for CLIENT_ID near the top of the script).');
       return;
     }
 
-    const verifier = randomString(64);
-    localStorage.setItem(LS.verifier, verifier);
-    const challenge = base64UrlEncode(await sha256(verifier));
+    if (!window.isSecureContext) {
+      showError('This page needs to be served over https:// (or http://localhost) — opening the file directly (file://) blocks the login step your browser requires for security. Host it on GitHub Pages, Netlify, Vercel, or run a local dev server.');
+      return;
+    }
 
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      code_challenge_method: 'S256',
-      code_challenge: challenge,
-      redirect_uri: REDIRECT_URI
-    });
+    if (!window.crypto || !window.crypto.subtle) {
+      showError('Your browser does not support the Web Crypto API needed for login. Try a recent version of Chrome, Firefox, Edge, or Safari.');
+      return;
+    }
 
-    window.location = 'https://accounts.spotify.com/authorize?' + params.toString();
+    try {
+      const verifier = randomString(64);
+      localStorage.setItem(LS.verifier, verifier);
+      const challenge = base64UrlEncode(await sha256(verifier));
+
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        code_challenge_method: 'S256',
+        code_challenge: challenge,
+        redirect_uri: REDIRECT_URI
+      });
+
+      window.location = 'https://accounts.spotify.com/authorize?' + params.toString();
+    } catch (e) {
+      showError('Could not start login: ' + e.message);
+    }
   }
 
   async function exchangeCodeForToken(code) {
@@ -507,7 +523,10 @@
     cardShell.classList.add('hidden');
 
     const notice = document.getElementById('setupNotice');
-    if (!CLIENT_ID || CLIENT_ID === 'YOUR_SPOTIFY_CLIENT_ID_HERE') {
+    if (!window.isSecureContext) {
+      notice.textContent = 'This page is not running in a secure context (' + window.location.protocol + '//). Host it over https:// or http://localhost — opening the file directly will block login.';
+      notice.style.display = 'block';
+    } else if (!CLIENT_ID || CLIENT_ID === 'YOUR_SPOTIFY_CLIENT_ID_HERE') {
       notice.textContent = 'Setup needed — redirect URI for the Spotify dashboard: ' + REDIRECT_URI;
       notice.style.display = 'block';
     } else {
