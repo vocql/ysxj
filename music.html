@@ -174,9 +174,9 @@
     display:flex; align-items:center; gap:20px; padding:0 22px;
   }
   .np-meta{ display:flex; align-items:center; gap:12px; width:300px; min-width:0; }
-  .np-video-wrap{ width:96px; height:54px; border-radius:8px; overflow:hidden; background:var(--panel-2); flex:none; }
-  .np-video-wrap iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
-  .np-video-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .np-video-wrap{ width:96px; height:54px; border-radius:8px; overflow:hidden; background:var(--panel-2); flex:none; position:relative; }
+  .np-video-wrap iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; display:block; pointer-events:none; z-index:1; }
+  .np-video-wrap img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; z-index:2; }
   .np-text{ min-width:0; }
   .np-text .np-name{ font-family:'Fredoka',sans-serif; font-size:14px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .np-text .np-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
@@ -278,7 +278,7 @@
 
   <div class="player-bar">
     <div class="np-meta">
-      <div class="np-video-wrap" id="npVideoWrap"><img class="np-logo" id="npLogo" src="ysxjlogo.png" alt=""></div>
+      <div class="np-video-wrap" id="npVideoWrap"><div id="ytPlayer"></div><img class="np-logo" id="npThumb" src="music.png" alt=""></div>
       <div class="np-text">
         <div class="np-name" id="npName">Nothing playing</div>
         <div class="np-artist" id="npArtist"></div>
@@ -443,15 +443,7 @@
     });
   }
 
-  let playerInitStarted = false;
-  async function ensurePlayer(){
-    if(playerInitStarted) return;
-    playerInitStarted = true;
-    const logo = $('npLogo');
-    if(logo) logo.remove();
-    const div = document.createElement('div');
-    div.id = 'ytPlayer';
-    $('npVideoWrap').appendChild(div);
+  async function initPlayer(){
     await loadIframeApi();
     ytPlayer = new YT.Player('ytPlayer', {
       height: '100%', width: '100%',
@@ -501,7 +493,7 @@
     const v = queue[index];
     $('npName').textContent = v.title;
     $('npArtist').textContent = v.channelTitle;
-    ensurePlayer();
+    $('npThumb').src = v.thumb || 'music.png';
     if(playerReady){ ytPlayer.loadVideoById(v.id); }
     else { pendingVideoId = v.id; }
     renderQueueViewIfActive();
@@ -864,6 +856,7 @@
     app.classList.add('show');
     $('authBtn').classList.add('hidden');
     initAuth();
+    initPlayer();
     openHome();
   }
 
