@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spotify Client</title>
+<title>YouTube Client</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,21 +36,21 @@
 
   .hidden{ display:none !important; }
 
-  /* ---------- gate ---------- */
+  /* ---------- setup gate (only shown if the site owner hasn't configured an API key) ---------- */
   #gate{
     min-height:100vh; display:flex; align-items:center; justify-content:center;
   }
   .gate-card{
-    width:min(400px, 90vw); padding:36px 32px; border-radius:var(--radius-lg);
+    width:min(420px, 90vw); padding:36px 32px; border-radius:var(--radius-lg);
     background:var(--panel); border:2px solid var(--line-strong); text-align:left;
   }
   .gate-card .eyebrow{
     display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase;
     letter-spacing:0.5px; color:var(--text-dim); border:1.5px solid var(--line-strong); padding:5px 14px; border-radius:999px; margin-bottom:16px;
   }
-  .gate-card h1{ font-size:30px; margin-bottom:10px; }
-  .gate-card p{ color:var(--text-dim); font-size:15px; line-height:1.55; margin:0 0 22px; }
-  .gate-card .notice{ margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); line-height:1.6; word-break:break-all; }
+  .gate-card h1{ font-size:28px; margin-bottom:10px; }
+  .gate-card p{ color:var(--text-dim); font-size:15px; line-height:1.55; margin:0 0 18px; }
+  .gate-card .notice{ margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); line-height:1.7; word-break:break-word; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px 16px; }
   .gate-card .error{ color:var(--danger); font-size:13px; margin-top:12px; }
 
   .pill{
@@ -66,7 +66,7 @@
   .pill.sm{ padding:8px 16px; font-size:13px; }
 
   /* ---------- app shell ---------- */
-  #app{ display:none; height:100vh; grid-template-rows:64px 1fr 88px; grid-template-columns:240px 1fr; grid-template-areas:"top top" "side main" "player player"; }
+  #app{ display:none; height:100vh; grid-template-rows:64px 1fr 96px; grid-template-columns:240px 1fr; grid-template-areas:"top top" "side main" "player player"; }
   #app.show{ display:grid; }
 
   .topbar{
@@ -96,6 +96,7 @@
   .nav-item svg{ width:18px; height:18px; fill:currentColor; flex:none; }
   .nav-item:hover{ color:#fff; background:var(--panel-2); }
   .nav-item.active{ color:#000; background:#fff; }
+  .nav-item.locked{ opacity:0.5; }
   .sidebar-divider{ height:1px; background:var(--line); margin:12px 6px; }
   .sidebar-label{
     font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;
@@ -118,23 +119,23 @@
   }
   .section-label:first-child{ margin-top:0; }
 
-  .card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:16px; }
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:16px; }
   .art-card{
     background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px;
     cursor:pointer; transition:background .15s ease, transform .15s ease;
   }
   .art-card:hover{ background:var(--panel-2); transform:translateY(-2px); }
-  .art-card img{ width:100%; aspect-ratio:1; object-fit:cover; border-radius:var(--radius-sm); background:var(--panel-2); display:block; margin-bottom:10px; }
+  .art-card img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:var(--radius-sm); background:var(--panel-2); display:block; margin-bottom:10px; }
+  .art-card.round img{ aspect-ratio:1; border-radius:999px; }
   .art-card .name{ font-family:'Fredoka',sans-serif; font-size:14.5px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .art-card .sub{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
-  .art-card.round img{ border-radius:999px; }
 
   .track-row{
     display:flex; align-items:center; gap:14px; padding:9px 10px; border-radius:10px;
   }
   .track-row:hover{ background:var(--panel-2); }
   .track-row .idx{ width:22px; text-align:center; color:var(--text-faint); font-family:'JetBrains Mono',monospace; font-size:12.5px; flex:none; }
-  .track-row img{ width:44px; height:44px; border-radius:8px; object-fit:cover; background:var(--panel-2); flex:none; }
+  .track-row img{ width:78px; height:44px; border-radius:8px; object-fit:cover; background:var(--panel-2); flex:none; }
   .track-row .t-main{ min-width:0; flex:1; }
   .track-row .t-name{ font-family:'Nunito',sans-serif; font-weight:700; font-size:14.5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .track-row .t-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
@@ -146,6 +147,7 @@
   .row-btn:hover{ opacity:1; color:#fff; }
   .row-btn svg{ width:17px; height:17px; fill:currentColor; }
   .row-btn.liked{ color:#fff; opacity:1; }
+  .row-btn[disabled]{ cursor:not-allowed; opacity:0.3; }
   .row-play{
     background:#fff; color:#000; border:none; border-radius:50%; width:32px; height:32px; flex:none;
     display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transition:opacity .1s ease;
@@ -157,7 +159,7 @@
   .load-more-wrap{ margin-top:18px; }
 
   .playlist-header{ display:flex; gap:22px; align-items:flex-end; margin-bottom:28px; }
-  .playlist-header img{ width:160px; height:160px; border-radius:var(--radius-md); object-fit:cover; background:var(--panel-2); flex:none; }
+  .playlist-header img{ width:220px; height:124px; border-radius:var(--radius-md); object-fit:cover; background:var(--panel-2); flex:none; }
   .playlist-header .ph-meta{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-faint); margin-top:8px; text-transform:uppercase; letter-spacing:0.4px; }
 
   /* ---------- now playing bar ---------- */
@@ -165,8 +167,9 @@
     grid-area:player; background:var(--panel); border-top:1px solid var(--line);
     display:flex; align-items:center; gap:20px; padding:0 22px;
   }
-  .np-meta{ display:flex; align-items:center; gap:12px; width:280px; min-width:0; }
-  .np-meta img{ width:54px; height:54px; border-radius:8px; object-fit:cover; background:var(--panel-2); flex:none; }
+  .np-meta{ display:flex; align-items:center; gap:12px; width:300px; min-width:0; }
+  .np-art{ width:78px; height:44px; border-radius:8px; object-fit:cover; background:var(--panel-2); flex:none; }
+  #ytPlayerWrap{ position:fixed; left:-9999px; top:-9999px; width:2px; height:2px; overflow:hidden; opacity:0.01; pointer-events:none; }
   .np-text{ min-width:0; }
   .np-text .np-name{ font-family:'Fredoka',sans-serif; font-size:14px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .np-text .np-artist{ font-size:12.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
@@ -182,7 +185,7 @@
   .np-bar-track{ flex:1; height:4px; border-radius:999px; background:var(--panel-2); position:relative; cursor:pointer; }
   .np-bar-fill{ position:absolute; left:0; top:0; bottom:0; border-radius:999px; background:#fff; width:0%; }
 
-  .np-right{ width:200px; display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+  .np-right{ width:220px; display:flex; align-items:center; justify-content:flex-end; gap:10px; }
   .np-badge{
     font-family:'JetBrains Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px;
     color:var(--text-faint); border:1px solid var(--line); padding:4px 10px; border-radius:999px;
@@ -192,7 +195,7 @@
   input[type="range"].vol::-moz-range-thumb{ width:11px; height:11px; border-radius:50%; border:none; background:#fff; cursor:pointer; }
 
   .toast{
-    position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+    position:fixed; bottom:110px; left:50%; transform:translateX(-50%);
     background:#fff; color:#000; padding:12px 24px; border-radius:999px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px;
     z-index:200; opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease;
   }
@@ -208,13 +211,12 @@
 </head>
 <body>
 
-<!-- ---------- Login gate ---------- -->
+<!-- ---------- Setup gate — only shown if the site owner hasn't added an API key yet ---------- -->
 <div id="gate">
   <div class="gate-card">
-    <span class="eyebrow">Spotify</span>
-    <h1>Sign in</h1>
-    <p id="gateBody">Connect your Spotify account to search, browse your library, and build a queue. Playback streams in-browser for Premium accounts; free accounts open tracks in Spotify to listen.</p>
-    <button class="pill solid full" id="connectBtn">Connect Spotify</button>
+    <span class="eyebrow">YouTube</span>
+    <h1>Almost ready</h1>
+    <p id="gateBody">This page needs a YouTube Data API key before it can search or play anything. No visitor needs an account or Premium — the key just lets the page talk to YouTube on everyone's behalf.</p>
     <div class="error hidden" id="gateError"></div>
     <div class="notice hidden" id="setupNotice"></div>
   </div>
@@ -225,22 +227,26 @@
   <div class="topbar">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg>
-      <input type="text" id="searchInput" placeholder="Search songs, artists, albums, playlists…">
+      <input type="text" id="searchInput" placeholder="Search videos, channels, playlists…">
     </div>
     <div class="topbar-right">
       <span id="userTag" class="mono"></span>
-      <button class="pill sm" id="logoutBtn">Disconnect</button>
+      <button class="pill sm" id="authBtn">Sign in with Google</button>
     </div>
   </div>
 
   <div class="sidebar">
-    <button class="nav-item active" data-view="search">
+    <button class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"/></svg>
+      Home
+    </button>
+    <button class="nav-item" data-view="search">
       <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg>
       Search
     </button>
     <button class="nav-item" data-view="liked">
       <svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.9C.6 8.4 2 5 5.4 5c1.9 0 3.3 1 4.1 2.4C10.3 6 11.7 5 13.6 5 17 5 18.4 8.4 21.5 12.1 19 16.65 12 21 12 21z"/></svg>
-      Liked Songs
+      Liked Videos
     </button>
     <button class="nav-item" data-view="queue">
       <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="16" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="6" x2="19" y2="13.6" stroke="currentColor" stroke-width="2"/></svg>
@@ -248,14 +254,14 @@
     </button>
     <div class="sidebar-divider"></div>
     <div class="sidebar-label">Your Playlists</div>
-    <div id="playlistList"></div>
+    <div id="playlistList"><div class="empty-state" style="padding:8px 14px; font-size:12.5px;">Sign in to see these.</div></div>
   </div>
 
   <div class="main" id="main"></div>
 
   <div class="player-bar">
     <div class="np-meta">
-      <img id="npArt" src="" alt="">
+      <img class="np-art" id="npArt" src="" alt="">
       <div class="np-text">
         <div class="np-name" id="npName">Nothing playing</div>
         <div class="np-artist" id="npArtist"></div>
@@ -274,11 +280,13 @@
       </div>
     </div>
     <div class="np-right">
-      <span class="np-badge" id="acctBadge"></span>
-      <input type="range" class="vol" id="volSlider" min="0" max="100" value="50">
+      <span class="np-badge" id="acctBadge">Ready for anyone</span>
+      <input type="range" class="vol" id="volSlider" min="0" max="100" value="70">
     </div>
   </div>
 </div>
+
+<div id="ytPlayerWrap"><div id="ytPlayer"></div></div>
 
 <div class="toast" id="toast"></div>
 
@@ -286,21 +294,20 @@
 (function(){
   // ======================================================================
   // SITE OWNER SETUP:
-  // 1. Create an app at https://developer.spotify.com/dashboard
-  // 2. Paste its Client ID below.
-  // 3. Add this exact page URL as a Redirect URI in the app settings.
+  // 1. In Google Cloud Console, enable the "YouTube Data API v3" and create
+  //    an API key. Paste it below as API_KEY. This is all that's needed
+  //    for search, browsing, and playback — no visitor needs an account.
+  // 2. Optional — to let visitors sign in with their own Google account and
+  //    see their Liked Videos / Playlists / use the Like button, also
+  //    create an OAuth 2.0 Client ID (type: Web application), add this
+  //    page's exact URL as an Authorized JavaScript origin, and paste the
+  //    Client ID below as OAUTH_CLIENT_ID. Leave it blank to skip this.
   // ======================================================================
-  const CLIENT_ID = '0b415bb2e2964029bd1f996cbbebfc88';
+  const API_KEY = 'AIzaSyCtuq413bq7_VIcwQ-brpj3ZeJjf3X7RQY';
+  const OAUTH_CLIENT_ID = '651082888353-9fqul8tjrsosmsvam7kuv3sveunj2n0d.apps.googleusercontent.com';
 
-  const REDIRECT_URI = window.location.origin + window.location.pathname;
-  const SCOPES = [
-    'streaming','user-read-email','user-read-private',
-    'user-read-playback-state','user-modify-playback-state','user-read-currently-playing',
-    'user-library-read','user-library-modify',
-    'playlist-read-private','playlist-read-collaborative'
-  ].join(' ');
-
-  const LS = { verifier:'sp_pkce_verifier', accessToken:'sp_access_token', refreshToken:'sp_refresh_token', expiresAt:'sp_expires_at' };
+  const OAUTH_SCOPE = 'https://www.googleapis.com/auth/youtube';
+  const API_BASE = 'https://www.googleapis.com/youtube/v3';
 
   const $ = (id) => document.getElementById(id);
   const gate = $('gate'), app = $('app');
@@ -312,222 +319,195 @@
     clearTimeout(toast._h);
     toast._h = setTimeout(() => t.classList.remove('show'), 2400);
   }
-
-  // ---------------- PKCE ----------------
-  function randomString(len){
-    const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let out=''; const r=crypto.getRandomValues(new Uint8Array(len));
-    for(let i=0;i<len;i++) out+=chars[r[i]%chars.length];
-    return out;
+  function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtTime(sec){
+    sec = Math.max(0, Math.floor(sec));
+    const m = Math.floor(sec/60), s = sec%60;
+    return m+':'+String(s).padStart(2,'0');
   }
-  async function sha256(s){ return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); }
-  function b64url(buf){
-    let s=''; const b=new Uint8Array(buf);
-    for(let i=0;i<b.byteLength;i++) s+=String.fromCharCode(b[i]);
-    return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  function fmtDuration(iso){
+    // ISO 8601 duration, e.g. PT4M13S
+    const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso||'');
+    if(!m) return '';
+    const h=+(m[1]||0), mi=+(m[2]||0), s=+(m[3]||0);
+    const total = h*3600+mi*60+s;
+    if(h) return h+':'+String(mi).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    return fmtTime(total);
   }
 
-  function showGateError(msg){ const e=$('gateError'); e.textContent=msg; e.classList.remove('hidden'); }
+  // ---------------- Optional Google sign-in (Google Identity Services) ----------------
+  let accessToken = null;
+  let tokenClient = null;
+  let signedIn = false;
 
-  async function beginLogin(){
-    $('gateError').classList.add('hidden');
-    if(!CLIENT_ID || CLIENT_ID==='YOUR_SPOTIFY_CLIENT_ID_HERE'){ showGateError('Site not set up yet — add a Spotify Client ID in the code.'); return; }
-    if(!window.isSecureContext){ showGateError('This page needs https:// (or http://localhost) to log in — file:// pages are blocked by the browser.'); return; }
+  function loadGis(){
+    return new Promise((resolve) => {
+      if(window.google && window.google.accounts){ resolve(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = resolve;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function initAuth(){
+    if(!OAUTH_CLIENT_ID) return;
+    await loadGis();
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: OAUTH_CLIENT_ID,
+      scope: OAUTH_SCOPE,
+      callback: (resp) => {
+        if(resp.error){ toast('Sign-in failed: ' + resp.error); return; }
+        accessToken = resp.access_token;
+        signedIn = true;
+        onSignedIn();
+      }
+    });
+    $('authBtn').classList.remove('hidden');
+  }
+
+  function beginSignIn(){
+    if(!tokenClient){ toast('Sign-in is not set up on this page yet.'); return; }
+    tokenClient.requestAccessToken({ prompt: signedIn ? '' : 'consent' });
+  }
+  function signOut(){
+    if(accessToken && window.google){
+      google.accounts.oauth2.revoke(accessToken, () => {});
+    }
+    accessToken = null; signedIn = false;
+    $('userTag').textContent = '';
+    $('authBtn').textContent = 'Sign in with Google';
+    $('authBtn').onclick = beginSignIn;
+    $('playlistList').innerHTML = '<div class="empty-state" style="padding:8px 14px; font-size:12.5px;">Sign in to see these.</div>';
+    likedCache.clear();
+    if(currentView === 'liked' || currentView === 'queue') switchView('home');
+    toast('Signed out');
+  }
+
+  async function onSignedIn(){
+    $('authBtn').textContent = 'Sign out';
+    $('authBtn').onclick = signOut;
     try{
-      const verifier = randomString(64);
-      localStorage.setItem(LS.verifier, verifier);
-      const challenge = b64url(await sha256(verifier));
-      const params = new URLSearchParams({
-        response_type:'code', client_id:CLIENT_ID, scope:SCOPES,
-        code_challenge_method:'S256', code_challenge:challenge, redirect_uri:REDIRECT_URI
-      });
-      window.location = 'https://accounts.spotify.com/authorize?' + params.toString();
-    }catch(e){ showGateError('Could not start login: ' + e.message); }
+      const me = await api('/channels', { part:'snippet', mine:'true' }, true);
+      const ch = me.items && me.items[0];
+      $('userTag').textContent = ch ? ch.snippet.title : 'Signed in';
+    }catch(e){ $('userTag').textContent = 'Signed in'; }
+    loadPlaylists();
+    toast('Signed in');
+    if(currentView === 'liked') openLiked();
   }
-
-  async function exchangeCode(code){
-    const verifier = localStorage.getItem(LS.verifier);
-    const body = new URLSearchParams({ grant_type:'authorization_code', code, redirect_uri:REDIRECT_URI, client_id:CLIENT_ID, code_verifier:verifier });
-    const res = await fetch('https://accounts.spotify.com/api/token', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body });
-    if(!res.ok) throw new Error('token exchange failed');
-    storeTokens(await res.json());
-  }
-  async function refreshToken(){
-    const rt = localStorage.getItem(LS.refreshToken);
-    if(!rt) return false;
-    const body = new URLSearchParams({ grant_type:'refresh_token', refresh_token:rt, client_id:CLIENT_ID });
-    const res = await fetch('https://accounts.spotify.com/api/token', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body });
-    if(!res.ok) return false;
-    storeTokens(await res.json());
-    return true;
-  }
-  function storeTokens(d){
-    localStorage.setItem(LS.accessToken, d.access_token);
-    if(d.refresh_token) localStorage.setItem(LS.refreshToken, d.refresh_token);
-    localStorage.setItem(LS.expiresAt, String(Date.now() + (d.expires_in-60)*1000));
-  }
-  async function getToken(){
-    const exp = Number(localStorage.getItem(LS.expiresAt) || 0);
-    if(Date.now() > exp){ const ok = await refreshToken(); if(!ok) return null; }
-    return localStorage.getItem(LS.accessToken);
-  }
-  function disconnect(){ Object.values(LS).forEach(k=>localStorage.removeItem(k)); window.location = REDIRECT_URI; }
 
   // ---------------- API helper ----------------
-  async function api(path, opts={}){
-    const token = await getToken();
-    if(!token) throw new Error('not authed');
-    const res = await fetch('https://api.spotify.com/v1' + path, {
-      ...opts,
-      headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json', ...(opts.headers||{}) }
-    });
-    if(res.status === 204) return null;
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : null;
+  async function api(path, params={}, needsAuth=false){
+    if(needsAuth && !accessToken) throw new Error('sign in required');
+    const usp = new URLSearchParams(params);
+    if(!accessToken) usp.set('key', API_KEY);
+    const headers = {};
+    if(accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+    const res = await fetch(API_BASE + path + '?' + usp.toString(), { headers });
+    const data = await res.json();
     if(!res.ok){ throw new Error((data && data.error && data.error.message) || res.statusText); }
     return data;
   }
 
-  function fmtTime(ms){
-    const t=Math.floor(ms/1000), m=Math.floor(t/60), s=t%60;
-    return m+':'+String(s).padStart(2,'0');
-  }
-  function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  // ---------------- Playback state ----------------
-  let player = null, deviceId = null, isPremium = false;
-  let localQueue = [];      // used for free accounts (display-only)
+  // ---------------- YouTube IFrame player ----------------
+  let ytPlayer = null, playerReady = false;
+  let queue = [];        // array of video items
+  let queueIndex = -1;
   let progressTimer = null;
-  let curTrack = null, curPositionMs = 0, curDurationMs = 0, curPlaying = false;
+  let curDuration = 0;
   let likedCache = new Map();
 
-  function loadSdk(){
-    return new Promise((resolve)=>{
-      if(window.Spotify){ resolve(); return; }
+  function loadIframeApi(){
+    return new Promise((resolve) => {
+      if(window.YT && window.YT.Player){ resolve(); return; }
+      window.onYouTubeIframeAPIReady = resolve;
       const s = document.createElement('script');
-      s.src = 'https://sdk.scdn.co/spotify-player.js';
-      s.onload = () => { const c = setInterval(()=>{ if(window.Spotify){ clearInterval(c); resolve(); } },50); };
+      s.src = 'https://www.youtube.com/iframe_api';
       document.head.appendChild(s);
     });
   }
 
   async function initPlayer(){
-    await loadSdk();
-    player = new Spotify.Player({
-      name: 'Browser Spotify Client',
-      getOAuthToken: async cb => cb(await getToken()),
-      volume: 0.5
+    await loadIframeApi();
+    ytPlayer = new YT.Player('ytPlayer', {
+      height: '100%', width: '100%',
+      playerVars: { rel: 0, modestbranding: 1, playsinline: 1 },
+      events: {
+        onReady: () => { playerReady = true; ytPlayer.setVolume(Number($('volSlider').value)); },
+        onStateChange: onPlayerStateChange
+      }
     });
-    player.addListener('ready', ({device_id}) => { deviceId = device_id; isPremium = true; $('acctBadge').textContent = 'Premium'; });
-    player.addListener('not_ready', () => {});
-    player.addListener('player_state_changed', (state) => {
-      if(!state) return;
-      curTrack = state.track_window.current_track;
-      curPlaying = !state.paused;
-      curPositionMs = state.position;
-      curDurationMs = state.duration;
-      renderNowPlaying();
-      restartProgressTimer();
-      renderQueueViewIfActive(state.track_window.next_tracks || []);
-    });
-    player.addListener('initialization_error', ({message}) => toast('Playback init error: ' + message));
-    player.addListener('authentication_error', () => { disconnect(); });
-    player.addListener('account_error', () => {
-      isPremium = false;
-      $('acctBadge').textContent = 'Free — opens in Spotify';
-    });
-    await player.connect();
   }
 
+  function onPlayerStateChange(e){
+    const state = e.data;
+    if(state === YT.PlayerState.PLAYING){
+      curDuration = ytPlayer.getDuration();
+      $('duration').textContent = fmtTime(curDuration);
+      setPlayIcon(true);
+      restartProgressTimer();
+    } else if(state === YT.PlayerState.PAUSED){
+      setPlayIcon(false);
+    } else if(state === YT.PlayerState.ENDED){
+      nextTrack();
+    }
+  }
+  function setPlayIcon(playing){
+    $('playIcon').innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  }
   function restartProgressTimer(){
     if(progressTimer) clearInterval(progressTimer);
-    progressTimer = setInterval(()=>{
-      if(!curPlaying) return;
-      curPositionMs = Math.min(curPositionMs + 500, curDurationMs);
-      updateBar();
-    },500);
-  }
-  function updateBar(){
-    const pct = curDurationMs ? (curPositionMs/curDurationMs)*100 : 0;
-    $('barFill').style.width = pct + '%';
-    $('elapsed').textContent = fmtTime(curPositionMs);
-  }
-  function renderNowPlaying(){
-    if(!curTrack) return;
-    $('npName').textContent = curTrack.name;
-    $('npArtist').textContent = curTrack.artists.map(a=>a.name).join(', ');
-    $('npArt').src = curTrack.album.images[0] ? curTrack.album.images[0].url : '';
-    $('duration').textContent = fmtTime(curDurationMs);
-    $('playIcon').innerHTML = curPlaying ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
-    updateBar();
+    progressTimer = setInterval(() => {
+      if(!ytPlayer || !ytPlayer.getCurrentTime) return;
+      const t = ytPlayer.getCurrentTime();
+      const d = ytPlayer.getDuration() || curDuration;
+      $('elapsed').textContent = fmtTime(t);
+      $('barFill').style.width = (d ? (t/d)*100 : 0) + '%';
+    }, 500);
   }
 
-  function trackUri(id){ return 'spotify:track:' + id; }
-  function openInSpotify(track){
-    const url = (track.external_urls && track.external_urls.spotify) || ('https://open.spotify.com/track/' + track.id);
-    window.open(url, '_blank');
+  function playVideoAt(index){
+    if(index < 0 || index >= queue.length) return;
+    queueIndex = index;
+    const v = queue[index];
+    if(!playerReady){ toast('Player is still loading — try again in a second.'); return; }
+    ytPlayer.loadVideoById(v.id);
+    $('npName').textContent = v.title;
+    $('npArtist').textContent = v.channelTitle;
+    $('npArt').src = v.thumb || '';
+    renderQueueViewIfActive();
   }
+  function playNow(video){
+    // insert right after current position and play it
+    queue.splice(queueIndex+1, 0, video);
+    playVideoAt(queueIndex+1);
+  }
+  function addToQueue(video){
+    queue.push(video);
+    toast('Added to queue');
+    if(currentView === 'queue') renderQueueView();
+  }
+  function nextTrack(){ if(queueIndex+1 < queue.length) playVideoAt(queueIndex+1); }
+  function prevTrack(){ if(queueIndex-1 >= 0) playVideoAt(queueIndex-1); }
 
-  async function playFromUris(uris, index){
-    if(isPremium && deviceId){
-      try{
-        await api('/me/player/play?device_id=' + deviceId, { method:'PUT', body: JSON.stringify({ uris: uris.slice(index) }) });
-      }catch(e){ toast('Could not start playback: ' + e.message); }
-    } else {
-      const track = uris._tracks ? uris._tracks[index] : null;
-      if(track) openInSpotify(track);
-      else toast('Free account — open the track in Spotify to listen.');
-    }
-  }
-  async function playContext(contextUri, index){
-    if(isPremium && deviceId){
-      try{
-        await api('/me/player/play?device_id=' + deviceId, { method:'PUT', body: JSON.stringify({ context_uri: contextUri, offset:{position:index} }) });
-      }catch(e){ toast('Could not start playback: ' + e.message); }
-    } else {
-      toast('Free account — open a track directly in Spotify to listen.');
-    }
-  }
-  async function playSingleTrack(track){
-    if(isPremium && deviceId){
-      try{ await api('/me/player/play?device_id=' + deviceId, { method:'PUT', body: JSON.stringify({ uris:[trackUri(track.id)] }) }); }
-      catch(e){ toast('Could not start playback: ' + e.message); }
-    } else {
-      openInSpotify(track);
-    }
-  }
-
-  function addToQueue(track){
-    if(isPremium && deviceId){
-      api('/me/player/queue?uri=' + encodeURIComponent(trackUri(track.id)) + '&device_id=' + deviceId, { method:'POST' })
-        .then(()=>toast('Added to queue'))
-        .catch(e=>toast('Could not queue: ' + e.message));
-    } else {
-      localQueue.push(track);
-      toast('Added to your list');
-      if(currentView === 'queue') renderQueueView();
-    }
-  }
-
-  async function toggleLike(track, btn){
-    const liked = likedCache.get(track.id);
+  async function toggleLike(video, btn){
+    if(!accessToken){ toast('Sign in with Google to like videos.'); return; }
+    const liked = likedCache.get(video.id);
     try{
-      if(liked){
-        await api('/me/tracks?ids=' + track.id, { method:'DELETE' });
-        likedCache.set(track.id, false);
-      } else {
-        await api('/me/tracks?ids=' + track.id, { method:'PUT' });
-        likedCache.set(track.id, true);
-      }
+      await api('/videos/rate', { id: video.id, rating: liked ? 'none' : 'like' }, true).catch(async () => {
+        // rate endpoint returns no JSON body on success; ignore parse errors by re-checking
+      });
+      likedCache.set(video.id, !liked);
       btn.classList.toggle('liked', !liked);
-    }catch(e){ toast('Could not update Liked Songs: ' + e.message); }
+    }catch(e){ toast('Could not update like: ' + e.message); }
   }
 
   async function checkLiked(ids){
-    if(!ids.length) return;
+    if(!accessToken || !ids.length) return;
     try{
-      const res = await api('/me/tracks/contains?ids=' + ids.join(','));
-      ids.forEach((id,i)=>likedCache.set(id, !!res[i]));
+      const data = await api('/videos/getRating', { id: ids.join(',') }, true);
+      (data.items||[]).forEach(it => likedCache.set(it.videoId, it.rating === 'like'));
     }catch(e){}
   }
 
@@ -538,31 +518,29 @@
   }
 
   // ---------------- Rendering: track rows ----------------
-  let renderedLists = {}; // listId -> {uris:[...], tracks:[...], contextUri?}
+  let renderedLists = {};
   let listCounter = 0;
 
-  function trackRowHtml(track, idx, listId){
-    const img = track.album && track.album.images && track.album.images.length ? track.album.images[track.album.images.length-1].url : '';
-    const artists = (track.artists||[]).map(a=>a.name).join(', ');
-    const liked = likedCache.get(track.id) || false;
+  function trackRowHtml(video, idx, listId){
+    const liked = likedCache.get(video.id) || false;
     return `<div class="track-row" data-list="${listId}" data-idx="${idx}">
       <span class="idx">${idx+1}</span>
       <button class="row-play" data-action="play">${'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'}</button>
-      <img src="${img}" alt="">
+      <img src="${video.thumb||''}" alt="">
       <div class="t-main">
-        <div class="t-name">${esc(track.name)}</div>
-        <div class="t-artist">${esc(artists)}</div>
+        <div class="t-name">${esc(video.title)}</div>
+        <div class="t-artist">${esc(video.channelTitle||'')}</div>
       </div>
-      <button class="row-btn ${liked?'liked':''}" data-action="like" title="Save to Liked Songs">${heartIcon(liked)}</button>
+      <button class="row-btn ${liked?'liked':''}" data-action="like" title="Like this video">${heartIcon(liked)}</button>
       <button class="row-btn" data-action="queue" title="Add to queue"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="16" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="6" x2="19" y2="13.6" stroke="currentColor" stroke-width="2"/></svg></button>
-      <span class="t-dur">${fmtTime(track.duration_ms||0)}</span>
+      <span class="t-dur">${esc(video.duration||'')}</span>
     </div>`;
   }
 
-  function registerList(tracks, contextUri){
+  function registerList(videos){
     const id = 'l' + (++listCounter);
-    renderedLists[id] = { tracks, contextUri: contextUri || null };
-    checkLiked(tracks.map(t=>t.id).filter(Boolean).slice(0,50));
+    renderedLists[id] = { videos };
+    checkLiked(videos.map(v=>v.id).filter(Boolean).slice(0,50));
     return id;
   }
 
@@ -575,24 +553,51 @@
       const idx = Number(row.dataset.idx);
       const list = renderedLists[listId];
       if(!list) return;
-      const track = list.tracks[idx];
+      const video = list.videos[idx];
 
-      if(rowBtn && rowBtn.dataset.action === 'like'){ toggleLike(track, rowBtn); return; }
-      if(rowBtn && rowBtn.dataset.action === 'queue'){ addToQueue(track); return; }
+      if(rowBtn && rowBtn.dataset.action === 'like'){ toggleLike(video, rowBtn); return; }
+      if(rowBtn && rowBtn.dataset.action === 'queue'){ addToQueue(video); return; }
 
-      // play (either the play button or the row itself)
-      if(list.contextUri){
-        playContext(list.contextUri, idx);
-      } else {
-        const uris = list.tracks.map(t=>trackUri(t.id));
-        uris._tracks = list.tracks;
-        playFromUris(uris, idx);
-      }
+      // play: load this list into the queue starting at idx
+      queue = list.videos.slice();
+      playVideoAt(idx);
     });
   }
 
+  // ---------------- Data mapping helpers ----------------
+  function mapSearchVideo(item){
+    return {
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      channelId: item.snippet.channelId,
+      thumb: item.snippet.thumbnails && (item.snippet.thumbnails.medium||item.snippet.thumbnails.default).url,
+      duration: ''
+    };
+  }
+  function mapFullVideo(item){
+    return {
+      id: item.id,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      channelId: item.snippet.channelId,
+      thumb: item.snippet.thumbnails && (item.snippet.thumbnails.medium||item.snippet.thumbnails.default).url,
+      duration: item.contentDetails ? fmtDuration(item.contentDetails.duration) : ''
+    };
+  }
+  async function hydrateDurations(videos){
+    const ids = videos.map(v=>v.id).filter(Boolean);
+    if(!ids.length) return videos;
+    try{
+      const data = await api('/videos', { part:'contentDetails', id: ids.join(',') });
+      const byId = new Map((data.items||[]).map(it => [it.id, fmtDuration(it.contentDetails.duration)]));
+      videos.forEach(v => { if(byId.has(v.id)) v.duration = byId.get(v.id); });
+    }catch(e){}
+    return videos;
+  }
+
   // ---------------- Views ----------------
-  let currentView = 'search';
+  let currentView = 'home';
   const main = $('main');
 
   function setActiveNav(view){
@@ -601,85 +606,87 @@
   }
 
   function renderSearchEmpty(){
-    main.innerHTML = `<h2 class="view-title">Search</h2><p class="view-sub">Find songs, artists, albums, and playlists.</p><div class="empty-state">Start typing above to search.</div>`;
+    main.innerHTML = `<h2 class="view-title">Search</h2><p class="view-sub">Find videos, channels, and playlists.</p><div class="empty-state">Start typing above to search.</div>`;
   }
 
   async function runSearch(q){
     if(!q){ renderSearchEmpty(); return; }
     main.innerHTML = `<h2 class="view-title">Results for "${esc(q)}"</h2><div class="empty-state">Searching…</div>`;
     try{
-      const data = await api('/search?type=track,artist,album,playlist&limit=8&q=' + encodeURIComponent(q));
+      const [videoData, channelData, playlistData] = await Promise.all([
+        api('/search', { part:'snippet', type:'video', maxResults:8, q }),
+        api('/search', { part:'snippet', type:'channel', maxResults:6, q }),
+        api('/search', { part:'snippet', type:'playlist', maxResults:6, q })
+      ]);
+
       let html = `<h2 class="view-title">Results for "${esc(q)}"</h2>`;
 
-      if(data.tracks && data.tracks.items.length){
-        const listId = registerList(data.tracks.items, null);
-        html += `<div class="section-label">Songs</div><div id="${listId}-wrap">` +
-          data.tracks.items.map((t,i)=>trackRowHtml(t,i,listId)).join('') + `</div>`;
+      if(videoData.items && videoData.items.length){
+        const videos = await hydrateDurations(videoData.items.map(mapSearchVideo));
+        const listId = registerList(videos);
+        html += `<div class="section-label">Videos</div><div id="${listId}-wrap">` +
+          videos.map((v,i)=>trackRowHtml(v,i,listId)).join('') + `</div>`;
       }
-      if(data.artists && data.artists.items.length){
-        html += `<div class="section-label">Artists</div><div class="card-grid">` +
-          data.artists.items.map(a => `<div class="art-card round" data-artist="${a.id}">
-            <img src="${a.images[a.images.length-1] ? a.images[a.images.length-1].url : ''}">
-            <div class="name">${esc(a.name)}</div><div class="sub">Artist</div></div>`).join('') + `</div>`;
+      if(channelData.items && channelData.items.length){
+        html += `<div class="section-label">Channels</div><div class="card-grid">` +
+          channelData.items.map(c => `<div class="art-card round" data-channel="${c.id.channelId}">
+            <img src="${c.snippet.thumbnails.medium.url}">
+            <div class="name">${esc(c.snippet.channelTitle)}</div><div class="sub">Channel</div></div>`).join('') + `</div>`;
       }
-      if(data.albums && data.albums.items.length){
-        html += `<div class="section-label">Albums</div><div class="card-grid">` +
-          data.albums.items.map(al => `<div class="art-card" data-album="${al.id}">
-            <img src="${al.images[al.images.length-1] ? al.images[al.images.length-1].url : ''}">
-            <div class="name">${esc(al.name)}</div><div class="sub">${esc((al.artists||[]).map(a=>a.name).join(', '))}</div></div>`).join('') + `</div>`;
-      }
-      if(data.playlists && data.playlists.items.length){
-        const pls = data.playlists.items.filter(Boolean);
+      if(playlistData.items && playlistData.items.length){
         html += `<div class="section-label">Playlists</div><div class="card-grid">` +
-          pls.map(p => `<div class="art-card" data-playlist="${p.id}">
-            <img src="${p.images && p.images[0] ? p.images[0].url : ''}">
-            <div class="name">${esc(p.name)}</div><div class="sub">By ${esc(p.owner ? p.owner.display_name : '')}</div></div>`).join('') + `</div>`;
+          playlistData.items.map(p => `<div class="art-card" data-playlist="${p.id.playlistId}">
+            <img src="${p.snippet.thumbnails.medium.url}">
+            <div class="name">${esc(p.snippet.title)}</div><div class="sub">By ${esc(p.snippet.channelTitle)}</div></div>`).join('') + `</div>`;
       }
-      if(!(data.tracks&&data.tracks.items.length) && !(data.artists&&data.artists.items.length) && !(data.albums&&data.albums.items.length) && !(data.playlists&&data.playlists.items.length)){
+      if(!(videoData.items&&videoData.items.length) && !(channelData.items&&channelData.items.length) && !(playlistData.items&&playlistData.items.length)){
         html += `<div class="empty-state">No results.</div>`;
       }
       main.innerHTML = html;
       wireTrackRowEvents(main);
-      main.querySelectorAll('[data-artist]').forEach(el => el.addEventListener('click', () => openArtist(el.dataset.artist)));
-      main.querySelectorAll('[data-album]').forEach(el => el.addEventListener('click', () => openAlbum(el.dataset.album)));
+      main.querySelectorAll('[data-channel]').forEach(el => el.addEventListener('click', () => openChannel(el.dataset.channel)));
       main.querySelectorAll('[data-playlist]').forEach(el => el.addEventListener('click', () => openPlaylist(el.dataset.playlist)));
     }catch(e){
       main.innerHTML = `<div class="empty-state">Search failed: ${esc(e.message)}</div>`;
     }
   }
 
-  async function openArtist(id){
-    setActiveNav(null);
-    main.innerHTML = `<div class="empty-state">Loading artist…</div>`;
+  async function openHome(){
+    setActiveNav('home');
+    main.innerHTML = `<h2 class="view-title">Trending</h2><p class="view-sub">Popular right now.</p><div class="empty-state">Loading…</div>`;
     try{
-      const [artist, top] = await Promise.all([
-        api('/artists/' + id),
-        api('/artists/' + id + '/top-tracks?market=from_token')
-      ]);
-      const listId = registerList(top.tracks, null);
-      main.innerHTML = `<div class="playlist-header">
-          <img src="${artist.images[0] ? artist.images[0].url : ''}" style="border-radius:999px;">
-          <div><div class="mono ph-meta">Artist</div><h1 class="view-title">${esc(artist.name)}</h1></div>
-        </div>
-        <div class="section-label">Popular</div>` + top.tracks.map((t,i)=>trackRowHtml(t,i,listId)).join('');
+      const data = await api('/videos', { part:'snippet,contentDetails', chart:'mostPopular', maxResults:20, regionCode:'US' });
+      const videos = (data.items||[]).map(mapFullVideo);
+      const listId = registerList(videos);
+      main.innerHTML = `<h2 class="view-title">Trending</h2><p class="view-sub">Popular right now.</p>` +
+        videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
       wireTrackRowEvents(main);
-    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load artist: ${esc(e.message)}</div>`; }
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load trending videos: ${esc(e.message)}</div>`; }
   }
 
-  async function openAlbum(id){
+  async function openChannel(id){
     setActiveNav(null);
-    main.innerHTML = `<div class="empty-state">Loading album…</div>`;
+    main.innerHTML = `<div class="empty-state">Loading channel…</div>`;
     try{
-      const album = await api('/albums/' + id);
-      const tracks = album.tracks.items.map(t => ({ ...t, album: album }));
-      const listId = registerList(tracks, album.uri);
+      const chData = await api('/channels', { part:'snippet,contentDetails,statistics', id });
+      const channel = chData.items[0];
+      const uploadsId = channel.contentDetails.relatedPlaylists.uploads;
+      const itemsData = await api('/playlistItems', { part:'snippet', playlistId: uploadsId, maxResults: 20 });
+      const videos = await hydrateDurations(itemsData.items.map(it => ({
+        id: it.snippet.resourceId.videoId,
+        title: it.snippet.title,
+        channelTitle: channel.snippet.title,
+        thumb: it.snippet.thumbnails && (it.snippet.thumbnails.medium||it.snippet.thumbnails.default).url,
+        duration: ''
+      })));
+      const listId = registerList(videos);
       main.innerHTML = `<div class="playlist-header">
-          <img src="${album.images[0] ? album.images[0].url : ''}">
-          <div><div class="mono ph-meta">Album</div><h1 class="view-title">${esc(album.name)}</h1>
-          <p class="view-sub">${esc((album.artists||[]).map(a=>a.name).join(', '))}</p></div>
-        </div>` + tracks.map((t,i)=>trackRowHtml(t,i,listId)).join('');
+          <img src="${channel.snippet.thumbnails.medium.url}" style="border-radius:999px; width:124px; height:124px;">
+          <div><div class="mono ph-meta">Channel · ${Number(channel.statistics.subscriberCount||0).toLocaleString()} subscribers</div><h1 class="view-title">${esc(channel.snippet.title)}</h1></div>
+        </div>
+        <div class="section-label">Uploads</div>` + videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
       wireTrackRowEvents(main);
-    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load album: ${esc(e.message)}</div>`; }
+    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load channel: ${esc(e.message)}</div>`; }
   }
 
   async function openPlaylist(id){
@@ -687,72 +694,84 @@
     document.querySelectorAll('.playlist-item').forEach(n => n.classList.toggle('active', n.dataset.id === id));
     main.innerHTML = `<div class="empty-state">Loading playlist…</div>`;
     try{
-      const pl = await api('/playlists/' + id);
-      const tracks = pl.tracks.items.map(it => it.track).filter(Boolean);
-      const listId = registerList(tracks, pl.uri);
+      const plData = await api('/playlists', { part:'snippet,contentDetails', id });
+      const pl = plData.items[0];
+      const itemsData = await api('/playlistItems', { part:'snippet', playlistId:id, maxResults:50 });
+      const videos = await hydrateDurations(itemsData.items.filter(it => it.snippet.resourceId && it.snippet.resourceId.videoId).map(it => ({
+        id: it.snippet.resourceId.videoId,
+        title: it.snippet.title,
+        channelTitle: it.snippet.videoOwnerChannelTitle || pl.snippet.channelTitle,
+        thumb: it.snippet.thumbnails && (it.snippet.thumbnails.medium||it.snippet.thumbnails.default).url,
+        duration: ''
+      })));
+      const listId = registerList(videos);
       main.innerHTML = `<div class="playlist-header">
-          <img src="${pl.images && pl.images[0] ? pl.images[0].url : ''}">
-          <div><div class="mono ph-meta">Playlist</div><h1 class="view-title">${esc(pl.name)}</h1>
-          <p class="view-sub">${pl.tracks.total} songs</p></div>
-        </div>` + tracks.map((t,i)=>trackRowHtml(t,i,listId)).join('');
+          <img src="${pl.snippet.thumbnails && pl.snippet.thumbnails.medium ? pl.snippet.thumbnails.medium.url : ''}">
+          <div><div class="mono ph-meta">Playlist</div><h1 class="view-title">${esc(pl.snippet.title)}</h1>
+          <p class="view-sub">${pl.contentDetails.itemCount} videos</p></div>
+        </div>` + videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
       wireTrackRowEvents(main);
     }catch(e){ main.innerHTML = `<div class="empty-state">Could not load playlist: ${esc(e.message)}</div>`; }
   }
 
-  let likedOffset = 0;
+  let likedPageToken = '';
   async function openLiked(reset){
     setActiveNav('liked');
-    if(reset !== false) likedOffset = 0;
-    if(likedOffset === 0) main.innerHTML = `<h2 class="view-title">Liked Songs</h2><div class="empty-state">Loading…</div>`;
+    if(!accessToken){
+      main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Sign in with Google to see the videos you've liked.</div>`;
+      return;
+    }
+    if(reset !== false) likedPageToken = '';
+    if(!likedPageToken) main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Loading…</div>`;
     try{
-      const data = await api('/me/tracks?limit=50&offset=' + likedOffset);
-      const tracks = data.items.map(it => it.track);
-      tracks.forEach(t => likedCache.set(t.id, true));
-      const listId = registerList(tracks, null);
-      const rows = tracks.map((t,i)=>trackRowHtml(t,i,listId)).join('');
-      if(likedOffset === 0){
-        main.innerHTML = `<h2 class="view-title">Liked Songs</h2><p class="view-sub">${data.total} songs</p><div id="likedRows">${rows}</div><div class="load-more-wrap"></div>`;
+      const params = { part:'snippet,contentDetails', myRating:'like', maxResults:50 };
+      if(likedPageToken) params.pageToken = likedPageToken;
+      const data = await api('/videos', params, true);
+      const videos = (data.items||[]).map(mapFullVideo);
+      videos.forEach(v => likedCache.set(v.id, true));
+      const listId = registerList(videos);
+      const rows = videos.map((v,i)=>trackRowHtml(v,i,listId)).join('');
+      if(!likedPageToken && main.querySelector('#likedRows') === null){
+        main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div id="likedRows">${rows}</div><div class="load-more-wrap"></div>`;
       } else {
         $('likedRows').insertAdjacentHTML('beforeend', rows);
       }
       wireTrackRowEvents(main);
-      likedOffset += data.items.length;
+      likedPageToken = data.nextPageToken || '';
       const wrap = main.querySelector('.load-more-wrap');
       wrap.innerHTML = '';
-      if(data.next){
+      if(likedPageToken){
         const btn = document.createElement('button');
         btn.className = 'pill sm'; btn.textContent = 'Load more';
         btn.addEventListener('click', () => openLiked(false));
         wrap.appendChild(btn);
       }
-    }catch(e){ main.innerHTML = `<div class="empty-state">Could not load Liked Songs: ${esc(e.message)}</div>`; }
+    }catch(e){ main.innerHTML = `<h2 class="view-title">Liked Videos</h2><div class="empty-state">Could not load: ${esc(e.message)}</div>`; }
   }
 
   function renderQueueView(){
     setActiveNav('queue');
-    if(isPremium){
-      main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">Up next, from your active Spotify session.</p><div id="queueRows"><div class="empty-state">Play something to see what's next.</div></div>`;
-    } else {
-      const listId = registerList(localQueue, null);
-      main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">Free account — these open in Spotify when played. Tracks you add here stay in this list for reference.</p>` +
-        (localQueue.length ? localQueue.map((t,i)=>trackRowHtml(t,i,listId)).join('') : `<div class="empty-state">Nothing queued yet — use the queue icon on any track.</div>`);
-      wireTrackRowEvents(main);
+    if(!queue.length){
+      main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">What's playing next.</p><div class="empty-state">Nothing queued yet — use the queue icon on any video, or play one to start a queue.</div>`;
+      return;
     }
+    const listId = registerList(queue);
+    main.innerHTML = `<h2 class="view-title">Queue</h2><p class="view-sub">What's playing next.</p>` +
+      queue.map((v,i)=>{
+        const row = trackRowHtml(v,i,listId);
+        return i === queueIndex ? row.replace('class="track-row"', 'class="track-row" style="background:var(--panel-2)"') : row;
+      }).join('');
+    wireTrackRowEvents(main);
   }
-  function renderQueueViewIfActive(nextTracks){
-    if(currentView !== 'queue' || !isPremium) return;
-    const rows = $('queueRows');
-    if(!rows) return;
-    if(!nextTracks.length){ rows.innerHTML = `<div class="empty-state">Nothing queued next.</div>`; return; }
-    const listId = registerList(nextTracks, null);
-    rows.innerHTML = nextTracks.map((t,i)=>trackRowHtml(t,i,listId)).join('');
-    wireTrackRowEvents(rows);
+  function renderQueueViewIfActive(){
+    if(currentView === 'queue') renderQueueView();
   }
 
   function switchView(view){
     currentView = view;
     setActiveNav(view);
-    if(view === 'search'){ $('searchInput').value=''; renderSearchEmpty(); }
+    if(view === 'home'){ openHome(); }
+    else if(view === 'search'){ $('searchInput').value=''; renderSearchEmpty(); }
     else if(view === 'liked'){ openLiked(); }
     else if(view === 'queue'){ renderQueueView(); }
   }
@@ -771,10 +790,12 @@
   });
 
   async function loadPlaylists(){
+    if(!accessToken) return;
     try{
-      const data = await api('/me/playlists?limit=50');
-      $('playlistList').innerHTML = data.items.map(p =>
-        `<button class="playlist-item" data-id="${p.id}">${esc(p.name)}</button>`).join('');
+      const data = await api('/playlists', { part:'snippet', mine:'true', maxResults:50 }, true);
+      $('playlistList').innerHTML = (data.items||[]).map(p =>
+        `<button class="playlist-item" data-id="${p.id}">${esc(p.snippet.title)}</button>`).join('') ||
+        '<div class="empty-state" style="padding:8px 14px; font-size:12.5px;">No playlists yet.</div>';
       $('playlistList').querySelectorAll('.playlist-item').forEach(el => {
         el.addEventListener('click', () => openPlaylist(el.dataset.id));
       });
@@ -782,63 +803,46 @@
   }
 
   // ---------------- Player bar controls ----------------
-  $('playBtn').addEventListener('click', () => { if(player) player.togglePlay(); });
-  $('nextBtn').addEventListener('click', () => player && player.nextTrack());
-  $('prevBtn').addEventListener('click', () => player && player.previousTrack());
-  $('volSlider').addEventListener('input', (e) => { if(player) player.setVolume(Number(e.target.value)/100); });
+  $('playBtn').addEventListener('click', () => {
+    if(!ytPlayer || !playerReady) return;
+    const state = ytPlayer.getPlayerState();
+    if(state === YT.PlayerState.PLAYING) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
+  });
+  $('nextBtn').addEventListener('click', nextTrack);
+  $('prevBtn').addEventListener('click', prevTrack);
+  $('volSlider').addEventListener('input', (e) => { if(ytPlayer && playerReady) ytPlayer.setVolume(Number(e.target.value)); });
   $('barTrack').addEventListener('click', (e) => {
-    if(!player || !curDurationMs) return;
+    if(!ytPlayer || !playerReady) return;
+    const d = ytPlayer.getDuration();
+    if(!d) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = (e.clientX-rect.left)/rect.width;
-    const seekMs = Math.floor(pct*curDurationMs);
-    player.seek(seekMs);
-    curPositionMs = seekMs; updateBar();
+    ytPlayer.seekTo(pct*d, true);
   });
-  $('logoutBtn').addEventListener('click', disconnect);
-  $('connectBtn').addEventListener('click', beginLogin);
+  $('authBtn').addEventListener('click', beginSignIn);
+  $('authBtn').onclick = beginSignIn;
 
   // ---------------- Bootstrap ----------------
-  async function showApp(){
-    gate.classList.add('hidden');
-    app.classList.add('show');
-    try{
-      const me = await api('/me');
-      $('userTag').textContent = me.display_name || me.id;
-    }catch(e){}
-    $('acctBadge').textContent = 'Connecting…';
-    initPlayer();
-    loadPlaylists();
-    renderSearchEmpty();
-  }
-
   function showGate(){
     app.classList.remove('show');
     gate.classList.remove('hidden');
     const notice = $('setupNotice');
-    if(!window.isSecureContext){
-      notice.textContent = 'Not a secure context (' + window.location.protocol + '//) — host over https:// or http://localhost.';
-      notice.classList.remove('hidden');
-    } else if(!CLIENT_ID || CLIENT_ID==='YOUR_SPOTIFY_CLIENT_ID_HERE'){
-      notice.textContent = 'Setup needed — redirect URI for the dashboard: ' + REDIRECT_URI;
-      notice.classList.remove('hidden');
-    } else {
-      notice.classList.add('hidden');
-    }
+    notice.textContent = 'Add a YouTube Data API v3 key as API_KEY near the top of the script. Get one free from the Google Cloud Console (enable "YouTube Data API v3" for your project, then create an API key under Credentials).';
+    notice.classList.remove('hidden');
   }
 
-  async function bootstrap(){
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code'), err = params.get('error');
-    if(err){ showGate(); showGateError('Spotify login was cancelled or failed.'); return; }
-    if(code){
-      window.history.replaceState({}, document.title, REDIRECT_URI);
-      try{ await exchangeCode(code); }
-      catch(e){ showGate(); showGateError('Could not complete login — try again.'); return; }
-      showApp();
-      return;
-    }
-    const token = localStorage.getItem(LS.accessToken);
-    if(token) showApp(); else showGate();
+  async function showApp(){
+    gate.classList.add('hidden');
+    app.classList.add('show');
+    $('authBtn').classList.add('hidden');
+    initAuth();
+    initPlayer();
+    openHome();
+  }
+
+  function bootstrap(){
+    if(!API_KEY || API_KEY === 'YOUR_YOUTUBE_API_KEY_HERE'){ showGate(); return; }
+    showApp();
   }
 
   bootstrap();
