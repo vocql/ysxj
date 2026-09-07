@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Now Playing — Spotify</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101012;
+    --ink-2:#1a1a1d;
+    --ink-3:#232327;
+    --paper:#f7f5ef;
+    --paper-dim:#c9c7bd;
+    --paper-faint:#8c8a80;
+    --line: rgba(247,245,239,0.14);
+    --line-strong: rgba(247,245,239,0.28);
+    --radius-lg:32px;
+    --radius-md:22px;
+    --radius-sm:14px;
+    --danger:#e8556a;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html, body{
+    margin:0;
+    padding:0;
+    height:100%;
+    background:transparent;
+    font-family:'Nunito', sans-serif;
+    font-weight:600;
+    color:var(--paper);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+  }
+
+  h1,h2,h3,h4{ font-family:'Fredoka', sans-serif; font-weight:600; margin:0; }
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
+  ::selection{ background:var(--paper); color:var(--ink); }
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:3px solid var(--paper); outline-offset:2px; border-radius:8px;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  /* ---------- pill button ---------- */
+  .pill{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    width:100%; padding:15px 22px; border-radius:999px;
+    font-family:'Fredoka', sans-serif; font-size:16px; font-weight:600;
+    border:2.5px solid var(--paper); background:transparent; color:var(--paper);
+    cursor:pointer; transition:transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .pill.solid{ background:var(--paper); color:var(--ink); }
+  .pill:hover{ transform:translateY(-2px) scale(1.01); }
+  .pill.solid:hover{ background:transparent; color:var(--paper); }
+  .pill:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+
+  .chip{
+    display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--line-strong);
+    color:var(--paper-dim); font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:0.5px; padding:4px 12px; border-radius:999px; background:none;
+  }
+
+  /* ---------- gate / setup screen ---------- */
+  .gate{
+    width:min(400px, 90vw);
+    padding:36px 32px;
+    border-radius:var(--radius-lg);
+    background:rgba(16,16,18,0.72);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border:2px solid var(--line-strong);
+  }
+  .gate .eyebrow{
+    display:inline-block; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.5px; text-transform:uppercase;
+    color:var(--paper-dim); border:1.5px solid var(--line-strong); padding:5px 14px; border-radius:999px; margin-bottom:16px;
+  }
+  .gate h1{ font-size:32px; line-height:1.05; margin-bottom:10px; }
+  .gate p{ color:var(--paper-dim); font-size:15px; line-height:1.55; margin:0 0 22px; }
+  .gate .notice{
+    margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--paper-faint);
+    line-height:1.6; display:none; word-break:break-all;
+  }
+  .gate .error{ color:var(--danger); font-size:13px; margin-top:12px; display:none; }
+  .hidden{ display:none !important; }
+
+  /* ---------- player card ---------- */
+  .card{
+    width:min(400px, 92vw);
+    border-radius:var(--radius-lg);
+    background:rgba(16,16,18,0.72);
+    border:2px solid var(--line-strong);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .logout{
+    position:absolute; top:16px; right:18px;
+    background:none; border:none; color:var(--paper-faint);
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.5px;
+    cursor:pointer; opacity:0.7; z-index:2;
+  }
+  .logout:hover{ opacity:1; color:var(--paper); }
+
+  .card-top{ display:flex; gap:16px; padding:26px 24px 18px; }
+
+  .art-wrap{ position:relative; width:88px; height:88px; flex:0 0 auto; }
+  .art{
+    width:88px; height:88px; border-radius:var(--radius-sm);
+    object-fit:cover; background:var(--ink-3); display:block;
+  }
+  .art-wrap.playing::after{
+    content:""; position:absolute; inset:-6px; border-radius:calc(var(--radius-sm) + 6px);
+    background:var(--paper); opacity:0.18; filter:blur(12px); z-index:-1;
+    animation:pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:0.12; transform:scale(0.96); }
+    50%{ opacity:0.26; transform:scale(1.04); }
+  }
+
+  .meta{ min-width:0; flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .track-name{
+    font-family:'Fredoka', sans-serif; font-weight:600; font-size:20px; line-height:1.2;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 0 4px; color:var(--paper);
+  }
+  .artist-name{
+    font-size:14.5px; color:var(--paper-dim); white-space:nowrap; overflow:hidden;
+    text-overflow:ellipsis; margin:0 0 3px; font-weight:700;
+  }
+  .device-name{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--paper-faint);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:uppercase; letter-spacing:0.3px;
+  }
+
+  .progress-row{
+    display:flex; align-items:center; gap:10px; padding:0 24px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--paper-faint);
+  }
+  .bar-track{
+    flex:1; height:5px; border-radius:999px; background:var(--ink-3);
+    position:relative; cursor:pointer; border:1px solid var(--line);
+  }
+  .bar-fill{
+    position:absolute; left:2px; top:2px; bottom:2px; border-radius:999px;
+    background:var(--paper); width:0%;
+  }
+
+  .controls{ display:flex; align-items:center; justify-content:center; gap:24px; padding:16px 24px 12px; }
+  .ctrl{
+    background:none; border:none; color:var(--paper); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:6px;
+    opacity:0.8; transition:opacity .15s ease, transform .15s ease;
+  }
+  .ctrl:hover{ opacity:1; transform:scale(1.08); }
+  .ctrl svg{ width:20px; height:20px; fill:currentColor; }
+  .ctrl.play-pause{
+    width:48px; height:48px; border-radius:50%; background:var(--paper); color:var(--ink);
+  }
+  .ctrl.play-pause:hover{ transform:scale(1.05); }
+  .ctrl.play-pause svg{ width:19px; height:19px; }
+
+  .foot-row{ display:flex; align-items:center; gap:10px; padding:6px 24px 24px; }
+  .vol-icon{ width:15px; height:15px; fill:var(--paper-faint); flex:0 0 auto; }
+  input[type="range"].vol{
+    -webkit-appearance:none; appearance:none; flex:1; height:3px; border-radius:999px;
+    background:var(--ink-3); outline:none;
+  }
+  input[type="range"].vol::-webkit-slider-thumb{
+    -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--paper); cursor:pointer;
+  }
+  input[type="range"].vol::-moz-range-thumb{
+    width:12px; height:12px; border-radius:50%; border:none; background:var(--paper); cursor:pointer;
+  }
+
+  .idle-state{ padding:34px 26px 30px; text-align:center; }
+  .idle-state p{ color:var(--paper-dim); font-size:14.5px; margin:0 0 18px; line-height:1.55; font-weight:600; }
+  .idle-state .pill{ width:auto; padding:11px 24px; font-size:14.5px; }
+</style>
+</head>
+<body>
+
+  <!-- Setup / login screen -->
+  <div class="gate" id="gate">
+    <span class="eyebrow">Spotify</span>
+    <h1>Now Playing</h1>
+    <p id="gateBody">Connect your Spotify Premium account. Playback runs in this tab — nothing is sent anywhere else.</p>
+    <button class="pill solid" id="connectBtn">Connect Spotify</button>
+    <div class="error" id="gateError"></div>
+    <div class="notice" id="setupNotice"></div>
+  </div>
+
+  <!-- Player card -->
+  <div class="hidden" id="cardShell">
+    <div class="card">
+      <button class="logout" id="logoutBtn">DISCONNECT</button>
+
+      <div id="idleState" class="idle-state hidden">
+        <p>Connected — waiting for playback. Open Spotify on your phone or computer and hit play, then use the transfer button below to pull it here.</p>
+        <button class="pill solid" id="transferBtn">Play here</button>
+      </div>
+
+      <div id="playerBody">
+        <div class="card-top">
+          <div class="art-wrap" id="artWrap">
+            <img class="art" id="artImg" src="" alt="">
+          </div>
+          <div class="meta">
+            <p class="track-name" id="trackName">—</p>
+            <p class="artist-name" id="artistName">—</p>
+            <p class="device-name" id="deviceName"></p>
+          </div>
+        </div>
+
+        <div class="progress-row">
+          <span id="elapsed">0:00</span>
+          <div class="bar-track" id="barTrack"><div class="bar-fill" id="barFill"></div></div>
+          <span id="duration">0:00</span>
+        </div>
+
+        <div class="controls">
+          <button class="ctrl" id="prevBtn" title="Previous">
+            <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+          <button class="ctrl play-pause" id="playBtn" title="Play/Pause">
+            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <button class="ctrl" id="nextBtn" title="Next">
+            <svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg>
+          </button>
+        </div>
+
+        <div class="foot-row">
+          <svg class="vol-icon" viewBox="0 0 24 24"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          <input type="range" class="vol" id="volSlider" min="0" max="100" value="50">
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  // ======================================================================
+  // SITE OWNER SETUP — do this once before publishing this page:
+  // 1. Create an app at https://developer.spotify.com/dashboard
+  // 2. Paste its Client ID below.
+  // 3. In the app's settings, add this exact page URL as a Redirect URI
+  //    (open this page once in a browser and the gate below will show the
+  //    exact string to paste if it isn't set up yet).
+  // Visitors then just click "Connect Spotify" and log in with their own
+  // account — they never see or need a Client ID themselves.
+  // ======================================================================
+  const CLIENT_ID = '17f5db648fdc443f94118b7b74d309b0';
+
+  const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+  const SCOPES = [
+    'streaming',
+    'user-read-email',
+    'user-read-private',
+    'user-read-playback-state',
+    'user-modify-playback-state',
+    'user-read-currently-playing'
+  ].join(' ');
+
+  const LS = {
+    verifier: 'sp_pkce_verifier',
+    accessToken: 'sp_access_token',
+    refreshToken: 'sp_refresh_token',
+    expiresAt: 'sp_expires_at'
+  };
+
+  const gate = document.getElementById('gate');
+  const gateError = document.getElementById('gateError');
+  const cardShell = document.getElementById('cardShell');
+  const idleState = document.getElementById('idleState');
+  const playerBody = document.getElementById('playerBody');
+
+  function showError(msg) {
+    gateError.textContent = msg;
+    gateError.style.display = 'block';
+  }
+
+  // ---------- PKCE helpers ----------
+  function randomString(len) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let out = '';
+    const rand = crypto.getRandomValues(new Uint8Array(len));
+    for (let i = 0; i < len; i++) out += chars[rand[i] % chars.length];
+    return out;
+  }
+
+  async function sha256(plain) {
+    const data = new TextEncoder().encode(plain);
+    return crypto.subtle.digest('SHA-256', data);
+  }
+
+  function base64UrlEncode(buffer) {
+    let str = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) str += String.fromCharCode(bytes[i]);
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  async function beginLogin() {
+    if (!CLIENT_ID || CLIENT_ID === 'YOUR_SPOTIFY_CLIENT_ID_HERE') {
+      showError('This page has not been set up yet — the site owner needs to add a Spotify Client ID in the code.');
+      return;
+    }
+
+    const verifier = randomString(64);
+    localStorage.setItem(LS.verifier, verifier);
+    const challenge = base64UrlEncode(await sha256(verifier));
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      code_challenge_method: 'S256',
+      code_challenge: challenge,
+      redirect_uri: REDIRECT_URI
+    });
+
+    window.location = 'https://accounts.spotify.com/authorize?' + params.toString();
+  }
+
+  async function exchangeCodeForToken(code) {
+    const verifier = localStorage.getItem(LS.verifier);
+
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: REDIRECT_URI,
+      client_id: CLIENT_ID,
+      code_verifier: verifier
+    });
+
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+
+    if (!res.ok) throw new Error('Token exchange failed');
+    const data = await res.json();
+    storeTokens(data);
+  }
+
+  async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem(LS.refreshToken);
+    if (!refreshToken) return false;
+
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: CLIENT_ID
+    });
+
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+
+    if (!res.ok) return false;
+    const data = await res.json();
+    storeTokens(data);
+    return true;
+  }
+
+  function storeTokens(data) {
+    localStorage.setItem(LS.accessToken, data.access_token);
+    if (data.refresh_token) localStorage.setItem(LS.refreshToken, data.refresh_token);
+    const expiresAt = Date.now() + (data.expires_in - 60) * 1000;
+    localStorage.setItem(LS.expiresAt, String(expiresAt));
+  }
+
+  async function getValidToken() {
+    const expiresAt = Number(localStorage.getItem(LS.expiresAt) || 0);
+    if (Date.now() > expiresAt) {
+      const ok = await refreshAccessToken();
+      if (!ok) return null;
+    }
+    return localStorage.getItem(LS.accessToken);
+  }
+
+  function disconnect() {
+    Object.values(LS).forEach(k => localStorage.removeItem(k));
+    window.location = REDIRECT_URI;
+  }
+
+  // ---------- Spotify Web Playback SDK ----------
+  let player = null;
+  let deviceId = null;
+  let progressTimer = null;
+  let localProgressMs = 0;
+  let localDurationMs = 0;
+  let isPlaying = false;
+
+  window.onSpotifyWebPlaybackSDKReady = () => {};
+
+  function loadSdkScript() {
+    return new Promise((resolve) => {
+      if (window.Spotify) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://sdk.scdn.co/spotify-player.js';
+      script.onload = () => {
+        const check = setInterval(() => {
+          if (window.Spotify) { clearInterval(check); resolve(); }
+        }, 50);
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function initPlayer() {
+    await loadSdkScript();
+    const token = await getValidToken();
+    if (!token) { showGate(); return; }
+
+    player = new Spotify.Player({
+      name: 'Web Player',
+      getOAuthToken: async (cb) => { cb(await getValidToken()); },
+      volume: 0.5
+    });
+
+    player.addListener('ready', ({ device_id }) => {
+      deviceId = device_id;
+      showCard();
+    });
+
+    player.addListener('not_ready', () => {});
+
+    player.addListener('player_state_changed', (state) => {
+      if (!state) { showIdle(); return; }
+      renderState(state);
+    });
+
+    player.addListener('initialization_error', ({ message }) => showError(message));
+    player.addListener('authentication_error', ({ message }) => { showError(message); disconnect(); });
+    player.addListener('account_error', ({ message }) => showError('This needs a Spotify Premium account. ' + message));
+
+    await player.connect();
+  }
+
+  function renderState(state) {
+    playerBody.classList.remove('hidden');
+    idleState.classList.add('hidden');
+
+    const track = state.track_window.current_track;
+    isPlaying = !state.paused;
+    localProgressMs = state.position;
+    localDurationMs = state.duration;
+
+    document.getElementById('trackName').textContent = track.name;
+    document.getElementById('artistName').textContent = track.artists.map(a => a.name).join(', ');
+    document.getElementById('deviceName').textContent = 'Web Player';
+    const art = track.album.images[0] ? track.album.images[0].url : '';
+    document.getElementById('artImg').src = art;
+
+    document.getElementById('artWrap').classList.toggle('playing', isPlaying);
+    document.getElementById('playIcon').innerHTML = isPlaying
+      ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>'
+      : '<path d="M8 5v14l11-7z"/>';
+
+    document.getElementById('duration').textContent = fmtTime(localDurationMs);
+    updateBar();
+    restartProgressTimer();
+  }
+
+  function updateBar() {
+    const pct = localDurationMs ? (localProgressMs / localDurationMs) * 100 : 0;
+    document.getElementById('barFill').style.width = pct + '%';
+    document.getElementById('elapsed').textContent = fmtTime(localProgressMs);
+  }
+
+  function restartProgressTimer() {
+    if (progressTimer) clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      if (!isPlaying) return;
+      localProgressMs = Math.min(localProgressMs + 500, localDurationMs);
+      updateBar();
+    }, 500);
+  }
+
+  function fmtTime(ms) {
+    const total = Math.floor(ms / 1000);
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  // ---------- UI wiring ----------
+  function showGate() {
+    gate.classList.remove('hidden');
+    cardShell.classList.add('hidden');
+
+    const notice = document.getElementById('setupNotice');
+    if (!CLIENT_ID || CLIENT_ID === 'YOUR_SPOTIFY_CLIENT_ID_HERE') {
+      notice.textContent = 'Setup needed — redirect URI for the Spotify dashboard: ' + REDIRECT_URI;
+      notice.style.display = 'block';
+    } else {
+      notice.style.display = 'none';
+    }
+  }
+
+  function showCard() {
+    gate.classList.add('hidden');
+    cardShell.classList.remove('hidden');
+  }
+
+  function showIdle() {
+    playerBody.classList.add('hidden');
+    idleState.classList.remove('hidden');
+  }
+
+  document.getElementById('connectBtn').addEventListener('click', beginLogin);
+  document.getElementById('logoutBtn').addEventListener('click', disconnect);
+
+  document.getElementById('playBtn').addEventListener('click', () => { if (player) player.togglePlay(); });
+  document.getElementById('nextBtn').addEventListener('click', () => player && player.nextTrack());
+  document.getElementById('prevBtn').addEventListener('click', () => player && player.previousTrack());
+
+  document.getElementById('volSlider').addEventListener('input', (e) => {
+    if (player) player.setVolume(Number(e.target.value) / 100);
+  });
+
+  document.getElementById('barTrack').addEventListener('click', (e) => {
+    if (!player || !localDurationMs) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    const seekMs = Math.floor(pct * localDurationMs);
+    player.seek(seekMs);
+    localProgressMs = seekMs;
+    updateBar();
+  });
+
+  document.getElementById('transferBtn').addEventListener('click', async () => {
+    const token = await getValidToken();
+    if (!token || !deviceId) return;
+    await fetch('https://api.spotify.com/v1/me/player', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_ids: [deviceId], play: true })
+    });
+  });
+
+  // ---------- Bootstrapping ----------
+  async function bootstrap() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const err = urlParams.get('error');
+
+    if (err) {
+      showGate();
+      showError('Spotify login was cancelled or failed.');
+      return;
+    }
+
+    if (code) {
+      window.history.replaceState({}, document.title, REDIRECT_URI);
+      try {
+        await exchangeCodeForToken(code);
+      } catch (e) {
+        showGate();
+        showError('Could not complete login. Try connecting again.');
+        return;
+      }
+      initPlayer();
+      return;
+    }
+
+    const token = localStorage.getItem(LS.accessToken);
+    if (token) {
+      initPlayer();
+    } else {
+      showGate();
+    }
+  }
+
+  bootstrap();
+})();
+</script>
+</body>
+</html>
