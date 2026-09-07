@@ -493,7 +493,7 @@
     const v = queue[index];
     $('npName').textContent = v.title;
     $('npArtist').textContent = v.channelTitle;
-    $('npThumb').src = v.thumb || 'music.png';
+    // thumbnail stays fixed on music.png — only the title/channel text updates
     if(playerReady){ ytPlayer.loadVideoById(v.id); }
     else { pendingVideoId = v.id; }
     renderQueueViewIfActive();
